@@ -117,6 +117,9 @@ Node.prototype.moveManually = function(position){
     } else if (this.controlType == "vertex") {
         this.object3D.position.set(this.getPosition().x, position.y, 0);
         this.conic.updateA();
+    } else if (this.controlType == "extents") {
+        this.object3D.position.set(position.x, position.y, 0);
+        this.conic.updateExtents();
     }
 
     _.each(this.beams, function(beam){

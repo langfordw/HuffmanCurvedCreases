@@ -16,8 +16,10 @@ function Parabola(focus,a,angle,extents) {
     this.focus_node.conic = this;
     this.vertex_node = new Node(this.focus.clone().sub(new THREE.Vector3(-this.a*Math.sin(this.angle),this.a*Math.cos(this.angle),0)), globals, "vertex");
     this.vertex_node.conic = this;
-    this.end_node = new Node(this.points[0],globals,"end");
-    this.start_node = new Node(this.points[this.points.length-1],globals,"start")
+    this.end_node = new Node(this.points[0],globals,"extents");
+    this.end_node.conic = this;
+    this.start_node = new Node(this.points[this.points.length-1],globals,"extents")
+    this.start_node.conic = this;
 }
 
 Parabola.prototype.computeGeometry = function() {
@@ -54,6 +56,15 @@ Parabola.prototype.updateA = function() {
 
 	this.computeGeometry();
 
+	this.end_node.move(this.points[this.points.length-1]);
+	this.start_node.move(this.points[0]);
+}
+
+Parabola.prototype.updateExtents = function() {
+	this.extents[0] = this.focus.x-this.start_node.getPosition().x;
+	this.extents[1] = this.focus.x-this.end_node.getPosition().x;
+
+	this.computeGeometry();
 	this.end_node.move(this.points[this.points.length-1]);
 	this.start_node.move(this.points[0]);
 }

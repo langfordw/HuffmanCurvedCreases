@@ -26,6 +26,9 @@ function initGlobals(){
         lockTopology: false,
         lockNodePositions: false,
 
+        conic_resolution: 20, //
+        rule_resolution: 20,
+
         nodes : [],
         addNode: addNode,
         removeNode: removeNode,
@@ -69,20 +72,16 @@ function initGlobals(){
 
     function addNode(node){
         _globals.nodes.push(node);
-        _globals.gradient.syncNodes();
     }
     function removeNode(node){
         //if (_globals.nodes.length < 2) return;
         var index = _globals.nodes.indexOf(node);
         if (index>=0) _globals.nodes.splice(index, 1);
-        _globals.linked.deleteNode(node);
         node.destroy();
-        _globals.gradient.syncNodes();
     }
 
     function addEdge(edge){
         _globals.edges.push(edge);
-        _globals.gradient.syncNodes();
     }
     function removeEdge(edge){
         //if (_globals.edges.length == 1) return;
@@ -93,9 +92,6 @@ function initGlobals(){
 
     _globals.threeView = initThreeView(_globals);
     _globals.controls = initControls(_globals);
-    _globals.solver = initSolver(_globals);
-    _globals.linked = initLinked(_globals);
-    _globals.gradient = initGradientSolver(_globals);
 
     return _globals;
 }

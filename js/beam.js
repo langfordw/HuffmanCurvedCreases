@@ -5,10 +5,10 @@
 var beamMaterialHighlight = new THREE.MeshBasicMaterial({color: 0xffffff});
 var beamMaterialDelete = new THREE.MeshBasicMaterial({color:0xff0000});
 var beamGeometry = new THREE.Geometry();
-beamGeometry.vertices.push(new THREE.Vector3(-2,-0.5,0));
-beamGeometry.vertices.push(new THREE.Vector3(-2,0.5,0));
-beamGeometry.vertices.push(new THREE.Vector3(2,0.5,0));
-beamGeometry.vertices.push(new THREE.Vector3(2,-0.5,0));
+beamGeometry.vertices.push(new THREE.Vector3(-0.25,-1,0));
+beamGeometry.vertices.push(new THREE.Vector3(-0.25,1,0));
+beamGeometry.vertices.push(new THREE.Vector3(0.25,1,0));
+beamGeometry.vertices.push(new THREE.Vector3(0.25,-1,0));
 beamGeometry.faces.push(new THREE.Face3(1,0,3));
 beamGeometry.faces.push(new THREE.Face3(3,2,1));
 

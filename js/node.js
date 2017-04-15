@@ -6,7 +6,7 @@ var nodeMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
 var nodeMaterialFixed = new THREE.MeshBasicMaterial({color: 0x000000});
 var nodeMaterialDelete = new THREE.MeshBasicMaterial({color: 0xff0000});
 var nodeMaterialHighlight = new THREE.MeshBasicMaterial({color: 0xffffff});
-var nodeGeo = new THREE.CircleGeometry(5);
+var nodeGeo = new THREE.CircleGeometry(3);
 //nodeGeo.applyMatrix(new THREE.Matrix4().makeRotationY(Math.PI));
 var nodeFixedGeo = new THREE.CubeGeometry(12, 12, 12);
 
@@ -22,24 +22,17 @@ optGeo.faces.push(new THREE.Face3(3,4,5));
 var optMaterial = new THREE.MeshBasicMaterial({color:0x444444, transparent:true, opacity:0.5});
 var optMaterialHighlight = new THREE.MeshBasicMaterial({color:0xff00ff, transparent:true, opacity:0.95});
 
-function Node(position, globals, noAdd){
+function Node(position, globals, type, noAdd){
 
     this.type = "node";
+    this.controlType = type;
 
     this.beams = [];
+    this.conics = [];
     this.externalForce = null;
     this.fixed = false;
 
     if (noAdd === undefined){
-
-        var optimizationArrows = new THREE.Object3D();
-        optimizationArrows.add(new THREE.Mesh(optGeo, optMaterial));
-        optimizationArrows.add(new THREE.Mesh(optGeo, optMaterial));
-        optimizationArrows.children[1].rotation.z = Math.PI/2;
-        globals.threeView.secondPassSceneAdd(optimizationArrows);
-        this.optimizationArrows = optimizationArrows;
-        this.optimizationArrows.visible = false;
-
         this.object3D = new THREE.Mesh(nodeGeo, nodeMaterial);
         this.object3D._myNode = this;
         globals.threeView.thirdPassSceneAdd(this.object3D);
@@ -69,27 +62,6 @@ Node.prototype.setFixed = function(fixed){
 
 
 
-
-//forces
-
-Node.prototype.addExternalForce = function(force){
-    this.externalForce = force;
-    force.setNode(this);
-    force.setOrigin(this.getPosition());
-    if (this.fixed) force.hide();
-};
-
-Node.prototype.removeExternalForce = function(){
-    this.externalForce = null;
-};
-
-Node.prototype.getExternalForce = function(){
-    if (this.externalForce) return this.externalForce.getForce();
-    return new THREE.Vector3(0,0,0);
-};
-
-
-
 //beams
 
 Node.prototype.addBeam = function(beam){
@@ -106,10 +78,6 @@ Node.prototype.removeBeam = function(beam){
 Node.prototype.getBeams = function(){
     return this.beams;
 };
-
-
-
-
 
 Node.prototype.getObject3D = function(){
     return this.object3D;
@@ -143,12 +111,10 @@ Node.prototype.show = function(){
 };
 
 Node.prototype.moveManually = function(position){
-    this.optimizationArrows.position.set(position.x, position.y, position.z);
     this.object3D.position.set(position.x, position.y, position.z);
     _.each(this.beams, function(beam){
         beam.render();
     });
-    if (this.externalForce) this.externalForce.setOrigin(position.clone());
 };
 
 Node.prototype.move = function(position){

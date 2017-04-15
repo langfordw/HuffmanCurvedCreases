@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Truss Optimization 2D</title>
+
+    <link href="dependencies/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" type="text/css" href="dependencies/flat-ui.min.css"/>
+    <link rel="stylesheet" type="text/css" href="dependencies/jquery-ui.min.css"/>
+    <link rel="stylesheet" type="text/css" href="main.css"/>
+
+    <script type="text/javascript" src="dependencies/jquery-3.1.0.min.js"></script>
+    <script type="text/javascript" src="dependencies/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="dependencies/flat-ui.min.js"></script>
+    <script type="text/javascript" src="dependencies/three.js"></script>
+    <!--<script type="text/javascript" src="dependencies/binary_stl_writer.js"></script>-->
+    <script type="text/javascript" src="dependencies/OrbitControls.js"></script>
+    <script type="text/javascript" src="dependencies/underscore-min.js"></script>
+    <script type="text/javascript" src="dependencies/numeric-1.2.6.min.js"></script>
+    <script type="text/javascript" src="dependencies/FileSaver.min.js"></script>
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-86531114-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+
+    <script type="text/javascript" src="js/linked.js"></script>
+    <script type="text/javascript" src="js/solver.js"></script>
+    <script type="text/javascript" src="js/gradient.js"></script>
+    <script type="text/javascript" src="js/beam.js"></script>
+    <script type="text/javascript" src="js/beamBuilding.js"></script>
+    <script type="text/javascript" src="js/node.js"></script>
+    <script type="text/javascript" src="js/force.js"></script>
+    <script type="text/javascript" src="js/arrow.js"></script>
+    <script type="text/javascript" src="js/globals.js"></script>
+    <script type="text/javascript" src="js/threeView.js"></script>
+    <script type="text/javascript" src="js/solve.js"></script>
+    <script type="text/javascript" src="js/controls.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+</head>
+<body>
+<div  id="threeContainer"></div>
+<div id="unsolvable">UNSOLVABLE<br/><span>(beam may have zero length or connectivity may need to be adjusted)</span></div>
+<div id="controls">
+    <a href="#" id="addForce" class="btn btn-lg btn-default">Add Force</a><br/><br/>
+    <a href="#" id="addRemoveFixed" class="btn btn-lg btn-default">Add/Remove Fixed Nodes</a><br/><br/>
+    <a href="#" id="deleteMode" class="btn btn-lg btn-default">Delete Mode</a><br/><br/>
+    <!--<a href="#" id="solve" class="btn btn-lg btn-default">Solve</a><br/><br/>-->
+    <div id="FLContainer">&Sigma; | F<sub>i</sub> L<sub>i</sub> | = <span id="FL"></span> Nm</div><br/><br/>
+    <div class="floatRight">Gradient Step Size (m): &nbsp;&nbsp;<input id="gradStepSize" value="" placeholder="Step Size" class="form-control" type="text"></div><br/><br/>
+    <div id="linkedContainer">Optimization Variables:<br/>
+        <div class="indent" id="linkedNodes"></div>
+    </div>
+    <div id="gradOptions">
+        <a href="#" id="optimize" class="btn btn-lg btn-success">Auto Optimize</a><a href="#" id="pauseOptimization" class="btn btn-lg btn-warning">Pause Optimization</a><a href="#" id="resetOptimization" class="btn btn-lg btn-default">Reset</a><br/><br/>
+        <div class="floatRight" id="symmetryOptions">
+            Symmetry Angle (deg): &nbsp;&nbsp;<input id="symmetryAngle" value="" placeholder="Angle" class="form-control" type="text"><br/>
+        </div>
+        <div class="floatRight">Gradient Tolerance (Nm): &nbsp;&nbsp;<input id="gradTolerance" value="" placeholder="Tolerance" class="form-control" type="text"></div>
+    </div>
+    <div class="extraSpace"></div>
+</div>
+<div id="controlsLeft">
+    <a id="logo" target="_blank" href="http://cba.mit.edu/">
+        <img id="inactiveLogo" src="logo.png"/>
+        <img id="activeLogo" src="logo-active.png"/>
+    </a>
+    <a href="#" id="about" class="btn btn-lg btn-default">About</a><br/>
+    <div>
+        Controls:
+        <div class="indent">
+            <label class="checkbox" for="lockForces">
+                <input id="lockForces" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Lock Forces
+            </label>
+            <label class="checkbox" for="lockTopology">
+                <input id="lockTopology" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Lock Topology
+            </label>
+            <label class="checkbox" for="lockNodePositions">
+                <input id="lockNodePositions" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Lock Node Positions
+            </label>
+            <!--<label class="checkbox" for="xyOnly">-->
+                <!--<input id="xyOnly" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>-->
+                <!--Constrain to XY Plane-->
+            <!--</label>-->
+        </div>
+    </div>
+    <div>
+        View Mode:
+        <div class="indent">
+            <label class="radio">
+                <input name="viewMode" value="geometry" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Geometry
+            </label>
+            <label class="radio">
+                <input name="viewMode" value="length" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Length (m)
+            </label>
+            <label class="radio">
+                <input name="viewMode" value="force" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                    Internal Forces (N)
+            </label>
+            <label class="radio">
+                <input name="viewMode" value="tensionCompression" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                    Tension/Compression (N)
+            </label>
+            <!--<label class="radio">-->
+                <!--<input name="viewMode" value="deformation" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>-->
+                    <!--Deformation (m)-->
+            <!--</label>-->
+        </div>
+    </div><br/>
+    <a href="#" id="download" class="btn btn-lg btn-default">Download Design Info (.txt)</a>
+    <!--<a href="#" id="saveVariables" class="btn btn-lg btn-default">Save</a>-->
+</div>
+
+<div id="scaleBars"></div>
+<div id="tension-compressionScale"></div>
+<div id="moreInfo" class="form-inline"><span></span>
+    <input value="" type="text">
+    <div id="moreInfoX" class="input-group">
+        <span class="input-group-addon" id="basic-addonx">x:</span>
+        <input class="form-control" placeholder="" aria-describedby="basic-addonx" type="text">
+    </div>
+    <div id="moreInfoY" class="input-group">
+        <span class="input-group-addon" id="basic-addony">y:</span>
+        <input class="form-control" placeholder="" aria-describedby="basic-addony" type="text">
+    </div>
+    <div id="moreInfoZ" class="input-group">
+        <span class="input-group-addon" id="basic-addonz">z:</span>
+        <input class="form-control" placeholder="" aria-describedby="basic-addonz" type="text">
+    </div>
+</div>
+<div class="modal fade" id="aboutModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p><b>Truss Optimization 2D</b><br/><br/>
+            This is a design and optimization tool for trusses that uses real-time simulation feedback to inform the design process.
+            Trusses are assemblies of rigid beams connected at "nodes" that form the backbone of buildings, bridges, and other structures.
+            This tool uses <a href="https://ocw.mit.edu/courses/civil-and-environmental-engineering/1-050-solid-mechanics-fall-2004/readings/emech5_04.pdf" target="_blank">Finite Element Analysis</a> to numerically solve for internal forces in 2D truss structures assuming only axial forces in beams.
+            The beams have high stiffness (EA = 50 GPa m<sup>2</sup>) so that elastic deformations of the structure are negligible.
+            The advantage of this numerical approach over analytical approaches (such as <a href="https://en.wikibooks.org/wiki/Statics/Method_of_Joints" target="_blank">Method of Joints</a>) is that it generalizes to statically indeterminate structures.
+            <br/><br/>
+            Real-time simulation feedback shows the user how to adjust the positions of the nodes to minimize the volume of material used in the beams of the truss (proportional to &Sigma; | F<sub>i</sub> L<sub>i</sub> | for all beams i in the structure).
+            As you drag a node, a pink arrow indicates the direction of the gradient around the node's current position.
+            Move nodes in the direction of the gradient to minimize the total material volume.
+            The gradient is calculated numerically by sampling the space around the selected node's current position, the step size of this sampling is controlled by "Gradient Step Size".
+            <br/><br/>
+            Add nodes as variables to an automated optimization process either as single nodes or in mirrored pairs by holding down Shift, selecting a single node or a pair of nodes, and hitting Enter.
+            Once added, you may constrain their x/y position or change the axis of symmetry in your structure through the controls under "Optimization Variables".
+            Click "Auto Optimize" to begin the automated optimization process.
+            This process will incrementally adjust the positions of the nodes to minimize the total volume of the beams in the structure until further gains are less than "Gradient Tolerance".
+            This optimization process (gradient descent) is not guaranteed to find a globally optimal solution; run the optimization process from many initial starting configurations to find other local minima.
+            <br/><br/>
+            <b>Instructions:</b><br/>
+            <ul>
+                <li> Scroll to zoom, left click and drag to pan.</li>
+                <li> The force on each node is indicated by a grey arrow.  Drag on force vectors to change the applied force at each node.  Right click on a force vector to type in a value for it.  Click on the "Add Force" button and select a node to add an external force to it.</li>
+                <li> Drag nodes to move them, right click to type in an exact position for them.</li>
+                <li> Fixed nodes are indicated with a black square, click on the "Add/Remove Fixed Nodes" button and select a node to toggle its fixed state.</li>
+                <li> Double click on a beam to add a node to it, double click on a node to begin drawing a new beam.</li>
+                <li> Click the "Delete Mode" button and select a node, beam, or external force to remove it.</li>
+                <li> Toggle between viewing geometry, length, internal forces, and tension/compression of beams in the structure using the controls on the left.  Mouse over a beam to get more detailed information about it.</li>
+                <li> Lock external force magnitudes, topology (the connectivity of nodes and beams), and the positions of the nodes by selecting the checkboxes in the upper left.</li>
+                <li> Click "Download Design Info" to save a text file containing geometric information about the current structure.</li>
+            </ul>
+            <br/>
+            Built by <a href="http://www.amandaghassaei.com/" target="_blank">Amanda Ghassaei</a> as a homework assignment for <a href="https://architecture.mit.edu/subject/fall-2016-4450" target="_blank">Computational Structural Design and Optimization</a>.
+            Code available on <a href="https://github.com/amandaghassaei/TrussOptimization2D" target="_blank">Github</a>.
+        </p>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+</body>
+</html>

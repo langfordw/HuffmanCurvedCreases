@@ -28,7 +28,7 @@ function Node(position, globals, type, noAdd){
     this.controlType = type;
 
     this.beams = [];
-    this.conics = [];
+    this.conic = [];
     this.externalForce = null;
     this.fixed = false;
 
@@ -111,14 +111,21 @@ Node.prototype.show = function(){
 };
 
 Node.prototype.moveManually = function(position){
-    this.object3D.position.set(position.x, position.y, position.z);
+    if (this.controlType == "focus") {
+        this.object3D.position.set(position.x, position.y, 0);
+        this.conic.move(position);
+    } else if (this.controlType == "vertex") {
+        this.object3D.position.set(this.getPosition().x, position.y, 0);
+        this.conic.updateA();
+    }
+
     _.each(this.beams, function(beam){
         beam.render();
     });
+    
 };
 
 Node.prototype.move = function(position){
-    this.optimizationArrows.position.set(position.x, position.y, position.z);
     this.object3D.position.set(position.x, position.y, position.z);
     _.each(this.beams, function(beam){
         beam.render();
@@ -129,36 +136,6 @@ Node.prototype.move = function(position){
 Node.prototype.getPosition = function(){
     if (this.position) return this.position.clone();
     return this.object3D.position.clone();
-};
-
-Node.prototype.setSelected = function(state, highlighted){
-    if (highlighted){
-        this.optimizationArrows.visible = true;
-        this.optimizationArrows.children[0].material = optMaterialHighlight;
-        this.optimizationArrows.children[0].visible = true;
-        this.optimizationArrows.children[1].material = optMaterialHighlight;
-        this.optimizationArrows.children[1].visible = true;
-        return;
-    }
-    this.optimizationArrows.children[0].material = optMaterial;
-    this.optimizationArrows.children[1].material = optMaterial;
-    this.optimizationArrows.visible = state;
-    if (state == false){
-        var linked = globals.linked.linked;
-        for (var i=0;i<linked.length;i++){
-            for (var j=0;j<linked[i].length;j++){
-                if (linked[i][j] == this){
-                    this.setOptVis(0, !globals.linked.locked[i][0]);
-                    this.setOptVis(1, !globals.linked.locked[i][1]);
-                    return;
-                }
-            }
-        }
-    }
-};
-
-Node.prototype.setOptVis = function(axis, state){
-    this.optimizationArrows.children[axis].visible = state;
 };
 
 

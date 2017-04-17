@@ -1,3 +1,5 @@
+var lineMat = new THREE.LineBasicMaterial({color: 0x000077, linewidth: 10});
+
 function Parabola(focus,a,angle,extents) {
 
 	this.type = "parabola";
@@ -10,6 +12,8 @@ function Parabola(focus,a,angle,extents) {
 	this.control_points = [];
 	this.beams = [];
 
+	this.boundingLines = [];
+
 	this.computeGeometry();
 
     this.focus_node = new Node(this.focus,globals,"focus");
@@ -20,6 +24,8 @@ function Parabola(focus,a,angle,extents) {
     this.start_node.conic = this;
     this.end_node = new Node(this.points[this.points.length-1],globals,"end")
     this.end_node.conic = this;
+
+    this.createRulePolys();
 }
 
 Parabola.prototype.computeGeometry = function() {
@@ -48,6 +54,8 @@ Parabola.prototype.move = function(position) {
 	this.end_node.move(this.points[this.points.length-1])
 	this.start_node.move(this.points[0])
 	this.vertex_node.move(this.focus.clone().sub(new THREE.Vector3(-this.a*Math.sin(this.angle),this.a*Math.cos(this.angle),0)));
+
+	this.createRulePolys();
 }
 
 Parabola.prototype.updateA = function() {
@@ -58,6 +66,8 @@ Parabola.prototype.updateA = function() {
 
 	this.end_node.move(this.points[this.points.length-1]);
 	this.start_node.move(this.points[0]);
+
+	this.createRulePolys();
 }
 
 Parabola.prototype.updateExtents = function(type,position) {
@@ -73,4 +83,43 @@ Parabola.prototype.updateExtents = function(type,position) {
 	this.computeGeometry();
 	this.end_node.move(this.points[this.points.length-1]);
 	this.start_node.move(this.points[0]);
+
+	this.createRulePolys();
+}
+
+Parabola.prototype.createRulePolys = function() {
+	globals.threeView.sceneRemove(this.boundingLines[0])
+	globals.threeView.sceneRemove(this.boundingLines[1])
+
+	var ray = new THREE.Ray(this.focus,this.end_node.getPosition().sub(this.focus));
+	console.log(ray)
+	var box = new THREE.Box3(new THREE.Vector3(-window.innerWidth/2.,-window.innerHeight/2.,-10),
+							new THREE.Vector3(window.innerWidth/2.,window.innerHeight/2.,10));
+	var intersect = ray.intersectBox(box)
+	console.log(intersect);
+	new Node(intersect,globals)
+	
+	var lineGeo = new THREE.Geometry();
+	lineGeo.dynamic = true;
+	lineGeo.vertices = [this.end_node.getPosition(),intersect];
+	var line = new THREE.Line(lineGeo, lineMat);
+
+	this.boundingLines[0] = line;
+	globals.threeView.sceneAdd(line);
+
+	var ray = new THREE.Ray(this.focus,this.start_node.getPosition().sub(this.focus));
+	console.log(ray)
+	var box = new THREE.Box3(new THREE.Vector3(-window.innerWidth/2.,-window.innerHeight/2.,-10),
+							new THREE.Vector3(window.innerWidth/2.,window.innerHeight/2.,10));
+	var intersect = ray.intersectBox(box)
+	console.log(intersect);
+	new Node(intersect,globals)
+
+	var lineGeo = new THREE.Geometry();
+	lineGeo.dynamic = true;
+	lineGeo.vertices = [this.start_node.getPosition(),intersect];
+	var line = new THREE.Line(lineGeo, lineMat);
+
+	this.boundingLines[1] = line;
+	globals.threeView.sceneAdd(line);
 }

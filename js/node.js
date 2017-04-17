@@ -115,7 +115,8 @@ Node.prototype.moveManually = function(position){
         this.object3D.position.set(position.x, position.y, 0);
         this.conic.move(position);
     } else if (this.controlType == "vertex") {
-        this.object3D.position.set(this.getPosition().x, position.y, 0);
+        // this.object3D.position.set(this.getPosition().x, position.y, 0);
+        this.object3D.position.set(position.x, position.y, 0);
         this.conic.updateA();
     } else if (this.controlType == "start") {
         // this.object3D.position.set(position.x, position.y, 0);

@@ -1,16 +1,21 @@
-var lineMat = new THREE.LineBasicMaterial({color: 0x000077, linewidth: 10});
+var lineMat = new THREE.LineBasicMaterial({color: 0x000077});
+var curveMat = new THREE.LineBasicMaterial({color: 0xff0000});
 
-function Parabola(focus,a,angle,extents) {
+
+function Parabola(focus,aVec,extents) {
 
 	this.type = "parabola";
-	this.focus = focus;
-	this.a = a;
-	this.angle = angle;
-	this.extents = extents;
-	this.vertex = null;
 
-	this.control_points = [];
-	this.beams = [];
+	// input parameters
+	this.focus = focus; 	// the x,y,z focal point
+	this.aVec = aVec; 			// vector from the focal point to the vertex
+	this.extents = extents; // the x-span of the function (orthogonal to aVec)
+
+	// dependent variables
+	this.vertex = this.focus.clone().add(this.aVec);		// the vertex
+	// console.log(this.vertex)
+
+	this.curve = null;
 
 	this.boundingLines = [];
 
@@ -18,7 +23,7 @@ function Parabola(focus,a,angle,extents) {
 
     this.focus_node = new Node(this.focus,globals,"focus");
     this.focus_node.conic = this;
-    this.vertex_node = new Node(this.focus.clone().sub(new THREE.Vector3(-this.a*Math.sin(this.angle),this.a*Math.cos(this.angle),0)), globals, "vertex");
+    this.vertex_node = new Node(this.vertex, globals, "vertex");
     this.vertex_node.conic = this;
     this.start_node = new Node(this.points[0],globals,"start");
     this.start_node.conic = this;
@@ -28,24 +33,37 @@ function Parabola(focus,a,angle,extents) {
     this.createRulePolys();
 }
 
+function getAngle(vec1) {
+	// console.log(vec1.y-vec2.y)
+	// console.log(vec1.x-vec2.x)
+	return Math.atan2(vec1.y,vec1.x)+Math.PI/2;
+}
+
 Parabola.prototype.computeGeometry = function() {
+	globals.threeView.sceneRemove(this.curve);
+
+	var a = this.aVec.length();
+	// var angle = this.aVec.angleTo(new THREE.Vector3(0,-1,0));
+	angle = getAngle(this.aVec)
+
+	console.log(angle)
+	// console.log()
 	this.points = [];
-	for (var t=this.focus.x+this.extents[0]; t <= this.focus.x+this.extents[1]; t++) {
+	for (var t=this.extents[0]; t <= this.extents[1]; t++) {
 		var x = t;
-		var y = (t-this.focus.x)*(t-this.focus.x)/(4*this.a)+this.focus.y-this.a;
-		this.points.push(new THREE.Vector3(x*Math.cos(this.angle) - y*Math.sin(this.angle),
-										   x*Math.sin(this.angle) + y*Math.cos(this.angle),
-										   0));
+		var y = (t)*(t)/(4*a)-a;
+		// this.points.push(new THREE.Vector3(x,
+		// 								   y,
+		// 								   0));
+		this.points.push(new THREE.Vector3(x*Math.cos(angle) - y*Math.sin(angle),
+										   x*Math.sin(angle) + y*Math.cos(angle),
+										   0).add(this.focus));
     }
 
-    this.curve = new THREE.SplineCurve(this.points);
-	this.path = new THREE.Path(this.curve.getPoints(50))
-	var geometry = this.path.createPointsGeometry(50);
-	var material = new THREE.LineBasicMaterial({color:0xff0000 });
-	globals.threeView.thirdPassSceneRemove(this.splineObject);
-	this.splineObject = new THREE.Line(geometry, material)
-
-	globals.threeView.thirdPassSceneAdd(this.splineObject);
+    var curveGeo = new THREE.Geometry();
+	curveGeo.vertices = this.points;
+	this.curve = new THREE.Line(curveGeo, curveMat);
+	globals.threeView.sceneAdd(this.curve);
 }
 
 Parabola.prototype.move = function(position) {
@@ -53,14 +71,14 @@ Parabola.prototype.move = function(position) {
 	this.computeGeometry();
 	this.end_node.move(this.points[this.points.length-1])
 	this.start_node.move(this.points[0])
-	this.vertex_node.move(this.focus.clone().sub(new THREE.Vector3(-this.a*Math.sin(this.angle),this.a*Math.cos(this.angle),0)));
+	this.vertex_node.move(this.focus.clone().add(this.aVec));
 
 	this.createRulePolys();
 }
 
 Parabola.prototype.updateA = function() {
 	this.vertex = this.vertex_node.getPosition();
-	this.a = this.focus.y - this.vertex.y; // this will need to change with angle
+	this.aVec = this.vertex.clone().sub(this.focus);
 
 	this.computeGeometry();
 
@@ -78,7 +96,7 @@ Parabola.prototype.updateExtents = function(type,position) {
 		this.extents[1] = position.x-this.focus.x;
 	}
 	// this.extents[1] = this.focus.x-position.x;
-	console.log(this.extents)
+	// console.log(this.extents)
 
 	this.computeGeometry();
 	this.end_node.move(this.points[this.points.length-1]);
@@ -92,11 +110,11 @@ Parabola.prototype.createRulePolys = function() {
 	globals.threeView.sceneRemove(this.boundingLines[1])
 
 	var ray = new THREE.Ray(this.focus,this.end_node.getPosition().sub(this.focus));
-	console.log(ray)
+	// console.log(ray)
 	var box = new THREE.Box3(new THREE.Vector3(-window.innerWidth/2.,-window.innerHeight/2.,-10),
 							new THREE.Vector3(window.innerWidth/2.,window.innerHeight/2.,10));
 	var intersect = ray.intersectBox(box)
-	console.log(intersect);
+	// console.log(intersect);
 	new Node(intersect,globals)
 	
 	var lineGeo = new THREE.Geometry();
@@ -108,11 +126,11 @@ Parabola.prototype.createRulePolys = function() {
 	globals.threeView.sceneAdd(line);
 
 	var ray = new THREE.Ray(this.focus,this.start_node.getPosition().sub(this.focus));
-	console.log(ray)
+	// console.log(ray)
 	var box = new THREE.Box3(new THREE.Vector3(-window.innerWidth/2.,-window.innerHeight/2.,-10),
 							new THREE.Vector3(window.innerWidth/2.,window.innerHeight/2.,10));
 	var intersect = ray.intersectBox(box)
-	console.log(intersect);
+	// console.log(intersect);
 	new Node(intersect,globals)
 
 	var lineGeo = new THREE.Geometry();

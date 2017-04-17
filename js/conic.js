@@ -12,95 +12,86 @@ function Parabola(focus,aVec,extents) {
 	this.extents = extents; // the x-span of the function (orthogonal to aVec)
 
 	// dependent variables
-	this.vertex = this.focus.clone().add(this.aVec);		// the vertex
-	// console.log(this.vertex)
-
+	this.vertex = this.focus.clone().add(this.aVec);		// the x,y,z of the vertex
 	this.curve = null;
+	this.curvePoints = [];
 
 	this.boundingLines = [];
 
-	this.computeGeometry();
+	this.computeCurve();
 
     this.focus_node = new Node(this.focus,globals,"focus");
     this.focus_node.conic = this;
     this.vertex_node = new Node(this.vertex, globals, "vertex");
     this.vertex_node.conic = this;
-    this.start_node = new Node(this.points[0],globals,"start");
+    this.start_node = new Node(this.curvePoints[0],globals,"start");
     this.start_node.conic = this;
-    this.end_node = new Node(this.points[this.points.length-1],globals,"end")
+    this.end_node = new Node(this.curvePoints[this.curvePoints.length-1],globals,"end")
     this.end_node.conic = this;
 
     this.createRulePolys();
 }
 
 function getAngle(vec1) {
-	// console.log(vec1.y-vec2.y)
-	// console.log(vec1.x-vec2.x)
 	return Math.atan2(vec1.y,vec1.x)+Math.PI/2;
 }
 
-Parabola.prototype.computeGeometry = function() {
+Parabola.prototype.computeCurve = function() {
 	globals.threeView.sceneRemove(this.curve);
 
 	var a = this.aVec.length();
-	// var angle = this.aVec.angleTo(new THREE.Vector3(0,-1,0));
-	angle = getAngle(this.aVec)
+	angle = getAngle(this.aVec);
 
-	console.log(angle)
-	// console.log()
-	this.points = [];
+	this.curvePoints = [];
 	for (var t=this.extents[0]; t <= this.extents[1]; t++) {
 		var x = t;
 		var y = (t)*(t)/(4*a)-a;
-		// this.points.push(new THREE.Vector3(x,
-		// 								   y,
-		// 								   0));
-		this.points.push(new THREE.Vector3(x*Math.cos(angle) - y*Math.sin(angle),
-										   x*Math.sin(angle) + y*Math.cos(angle),
-										   0).add(this.focus));
+		this.curvePoints.push(new THREE.Vector3(x*Math.cos(angle) - y*Math.sin(angle),
+										   		x*Math.sin(angle) + y*Math.cos(angle),
+										   		0).add(this.focus));
     }
 
     var curveGeo = new THREE.Geometry();
-	curveGeo.vertices = this.points;
+	curveGeo.vertices = this.curvePoints;
 	this.curve = new THREE.Line(curveGeo, curveMat);
 	globals.threeView.sceneAdd(this.curve);
 }
 
-Parabola.prototype.move = function(position) {
+Parabola.prototype.moveCurve = function(position) {
 	this.focus = this.focus_node.getPosition().clone();
-	this.computeGeometry();
-	this.end_node.move(this.points[this.points.length-1])
-	this.start_node.move(this.points[0])
+	this.computeCurve();
+
+	this.end_node.move(this.curvePoints[this.curvePoints.length-1])
+	this.start_node.move(this.curvePoints[0])
 	this.vertex_node.move(this.focus.clone().add(this.aVec));
 
 	this.createRulePolys();
 }
 
-Parabola.prototype.updateA = function() {
+Parabola.prototype.moveVertex = function() {
 	this.vertex = this.vertex_node.getPosition();
 	this.aVec = this.vertex.clone().sub(this.focus);
 
-	this.computeGeometry();
+	this.computeCurve();
 
-	this.end_node.move(this.points[this.points.length-1]);
-	this.start_node.move(this.points[0]);
+	this.end_node.move(this.curvePoints[this.curvePoints.length-1]);
+	this.start_node.move(this.curvePoints[0]);
 
 	this.createRulePolys();
 }
 
-Parabola.prototype.updateExtents = function(type,position) {
+Parabola.prototype.moveExtents = function(type,position) {
+	var xaxis = this.aVec.clone().applyAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2).divideScalar(this.aVec.length());
 	if (type == "start") {
-		this.extents[0] = position.x-this.focus.x;
+		this.extents[0] = position.sub(this.focus).dot(xaxis);
 	}
 	else if (type == "end") {
-		this.extents[1] = position.x-this.focus.x;
+		this.extents[1] = position.sub(this.focus).dot(xaxis);
 	}
-	// this.extents[1] = this.focus.x-position.x;
-	// console.log(this.extents)
 
-	this.computeGeometry();
-	this.end_node.move(this.points[this.points.length-1]);
-	this.start_node.move(this.points[0]);
+	this.computeCurve();
+	this.end_node.move(this.curvePoints[this.curvePoints.length-1]);
+	this.start_node.move(this.curvePoints[0]);
 
 	this.createRulePolys();
 }

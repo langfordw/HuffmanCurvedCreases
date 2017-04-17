@@ -8,9 +8,9 @@ $(function() {
 
     globals = initGlobals();
 
-    var p = new Parabola(new THREE.Vector3(50,50,0),new THREE.Vector3(10,0,0),[-50,50]);
-    console.log(p);
-    console.log(globals)
+    var p = new Parabola(new THREE.Vector3(50,50,0),new THREE.Vector3(0,-10,0),[-50,50]);
+    // var p2 = new Parabola(new THREE.Vector3(-50,50,0),new THREE.Vector3(0,-10,0),[-50,50]);
+    console.log(p)
 
     // _.each(nodePositions, function(pos){
         // var position = new THREE.Vector3(10,20,0);

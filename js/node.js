@@ -113,17 +113,17 @@ Node.prototype.show = function(){
 Node.prototype.moveManually = function(position){
     if (this.controlType == "focus") {
         this.object3D.position.set(position.x, position.y, 0);
-        this.conic.move(position);
+        this.conic.moveCurve(position);
     } else if (this.controlType == "vertex") {
         // this.object3D.position.set(this.getPosition().x, position.y, 0);
         this.object3D.position.set(position.x, position.y, 0);
-        this.conic.updateA();
+        this.conic.moveVertex();
     } else if (this.controlType == "start") {
         // this.object3D.position.set(position.x, position.y, 0);
-        this.conic.updateExtents("start",position);
+        this.conic.moveExtents("start",position);
     } else if (this.controlType == "end") {
         // this.object3D.position.set(position.x, position.y, 0);
-        this.conic.updateExtents("end",position);
+        this.conic.moveExtents("end",position);
     }
 
     _.each(this.beams, function(beam){

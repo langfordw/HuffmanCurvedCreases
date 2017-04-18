@@ -29,6 +29,13 @@ function initGlobals(){
         conic_resolution: 20, //
         rule_resolution: 20,
 
+        width: window.innerWidth,
+        height: window.innerHeight,
+        xmin: -window.innerWidth/2.0,
+        xmax: window.innerWidth/2.0,
+        ymin: -window.innerHeight/2.0,
+        ymax: window.innerHeight/2.0,
+
         nodes : [],
         addNode: addNode,
         removeNode: removeNode,

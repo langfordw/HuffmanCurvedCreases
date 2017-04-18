@@ -1,9 +1,30 @@
 var lineMat = new THREE.LineBasicMaterial({color: 0x000077});
 var curveMat = new THREE.LineBasicMaterial({color: 0xff0000});
-var polyMat = new THREE.MeshBasicMaterial({color: 0x005500, side: THREE.DoubleSide, transparent: true, opacity:0.25});
+var polyMat = new THREE.MeshBasicMaterial({color: 0x005500, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: false});
 
 function getAngle(vec1) {
 	return Math.atan2(vec1.y,vec1.x)+Math.PI/2;
+}
+
+function vectorBetweenVectors(A,B,C) {
+	// checks if C is between A and B
+	var AxB = A.clone().cross(B).z;
+	var AxC = A.clone().cross(C).z;
+	var CxB = C.clone().cross(B).z;
+
+	// console.log(AxB);
+	if (AxB >= 0) { // 180-360 angle
+		if (AxC < 0 || CxB < 0) {
+			// console.log("AxC: " + AxC + "  CxB: " + CxB + "  AxB: " + AxB);
+			return true;
+		}
+	} else { // 0-180 angle
+		if (-CxB >= 0 && -AxC >= 0) {
+			// console.log("BxC: " + BxC + "  CxA: " + CxA);
+			return true;
+		}
+	}
+	return false;
 }
 
 function Parabola(focus,aVec,extents) {
@@ -20,9 +41,6 @@ function Parabola(focus,aVec,extents) {
 	this.curve = null;
 	this.curvePoints = [];
 	this.polygon = null;
-
-	this.firstPolygonPoints = [];
-	this.secondPolygonPoints = [];
 
 	this.borderPoints = [];
 	this.boundingLines = [];
@@ -97,27 +115,6 @@ Parabola.prototype.moveExtents = function(type,position) {
 	this.updateGeometry();
 }
 
-function vectorBetweenVectors(A,B,C) {
-	// checks if C is between A and B
-	var AxB = A.clone().cross(B).z;
-	var AxC = A.clone().cross(C).z;
-	var CxB = C.clone().cross(B).z;
-
-	// console.log(AxB);
-	if (AxB >= 0) { // 180-360 angle
-		if (AxC < 0 || CxB < 0) {
-			// console.log("AxC: " + AxC + "  CxB: " + CxB + "  AxB: " + AxB);
-			return true;
-		}
-	} else { // 0-180 angle
-		if (-CxB >= 0 && -AxC >= 0) {
-			// console.log("BxC: " + BxC + "  CxA: " + CxA);
-			return true;
-		}
-	}
-	return false;
-}
-
 Parabola.prototype.calculateBoundingLines = function() {
 	this.borderPoints = [];
 	globals.threeView.sceneRemove(this.boundingLines[0])
@@ -127,9 +124,6 @@ Parabola.prototype.calculateBoundingLines = function() {
 	var box = new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,-10),
 							new THREE.Vector3(globals.xmax,globals.ymax,10));
 	var intersect1 = ray.intersectBox(box)
-	// new Node(intersect,globals)
-
-	// this.borderPoints.push(intersect1);
 	
 	var lineGeo = new THREE.Geometry();
 	lineGeo.vertices = [this.end_node.getPosition(),intersect1];
@@ -140,11 +134,7 @@ Parabola.prototype.calculateBoundingLines = function() {
 	box = new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,-10),
 							new THREE.Vector3(globals.xmax,globals.ymax,10));
 	var intersect2 = ray.intersectBox(box)
-	// new Node(intersect,globals)
-
-	// this.borderPoints.push(intersect2);
 	
-
 	lineGeo = new THREE.Geometry();
 	lineGeo.vertices = [this.start_node.getPosition(),intersect2];
 	this.boundingLines[1] = new THREE.Line(lineGeo, lineMat);
@@ -217,49 +207,17 @@ Parabola.prototype.calculateBoundingLines = function() {
 	}
 
 	this.borderPoints.push(intersect2);
-
-	
-	
-	
-	
-
-	console.log(this.borderPoints);
-
-	// var AxB = corner1.clone().sub(this.focus).cross(this.focus.clone().sub(this.start_node.getPosition())).z;
-	// var BxC = corner1.clone().sub(this.focus).cross(this.focus.clone().sub(this.end_node.getPosition())).z;
-	// var CxA = this.end_node.getPosition().sub(this.focus).cross(this.start_node.getPosition().sub(this.focus)).z;
-	// var CxB = this.end_node.getPosition().sub(this.focus).cross(corner1.clone().sub(this.focus)).z;
-		
-	// console.log("AxB: " + AxB + "  BxC: " + BxC + "  CxA: " + CxA + "  CxB: " + CxB)
-	// if (AxB * BxC <= 0 || CxB * CxA <= 0) {
-	// 	console.log("present")
-	// }
-	// var start_angle = getAngle(this.focus.clone().sub(this.start_node.getPosition()));
-	// var end_angle = getAngle(this.focus.clone().sub(this.end_node.getPosition()));
-	// console.log("start = " + start_angle)
-	// console.log("end = " + end_angle)
-
-	// corner1_angle = getAngle(corner1.clone().sub(this.focus))-Math.PI;
-	// console.log(corner1_angle)
-
-	// if (corner1_angle < start_angle && corner1_angle > end_angle) {
-	// 	console.log("corner 1")
-	// }
+	// console.log(this.borderPoints);
 }
 
 Parabola.prototype.createPolygon = function() {
 	globals.threeView.sceneRemove(this.polygon);
-
-
 
 	var polyGeom = new THREE.Geometry();
 
 	polyGeom.vertices.push(this.focus);
 	for (var i=0; i < this.curvePoints.length; i++) {
 		polyGeom.vertices.push(this.curvePoints[i]);
-		// if (i > 0) {
-		// 	polyGeom.faces.push(new THREE.Face3(0,i,i-1));
-		// }
 	}
 
 	for (var i=0; i < this.borderPoints.length; i++) {

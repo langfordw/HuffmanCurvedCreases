@@ -9,7 +9,7 @@ $(function() {
     globals = initGlobals();
 
     var p = new Parabola(new THREE.Vector3(50,50,0),new THREE.Vector3(0,-10,0),[-50,50]);
-    // var p2 = new Parabola(new THREE.Vector3(-50,50,0),new THREE.Vector3(0,-10,0),[-50,50]);
+    var p2 = new Parabola(new THREE.Vector3(-50,50,0),new THREE.Vector3(0,-10,0),[-50,50]);
     console.log(p)
 
     // _.each(nodePositions, function(pos){
@@ -93,8 +93,8 @@ $(function() {
         switch (e.which) {
         case 1://left button
             mouseDown = true;
-            console.log("mouse down")
-            console.log(highlightedObj)
+            // console.log("mouse down")
+            // console.log(highlightedObj)
             break;
         case 2://middle button
             break;

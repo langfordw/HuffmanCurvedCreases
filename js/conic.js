@@ -1,6 +1,7 @@
 var lineMat = new THREE.LineBasicMaterial({color: 0x000077});
 var curveMat = new THREE.LineBasicMaterial({color: 0xff0000});
 var polyMat = new THREE.MeshBasicMaterial({color: 0x005500, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: false});
+var polyMat2 = new THREE.MeshBasicMaterial({color: 0x000055, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: false});
 
 function getAngle(vec1) {
 	return Math.atan2(vec1.y,vec1.x)+Math.PI/2;
@@ -41,8 +42,10 @@ function Parabola(focus,aVec,extents) {
 	this.curve = null;
 	this.curvePoints = [];
 	this.polygon = null;
+	this.polygon2 = null;
 
 	this.borderPoints = [];
+	this.borderPoints2 = [];
 	this.boundingLines = [];
 
 	this.computeCurve();
@@ -67,7 +70,7 @@ Parabola.prototype.computeCurve = function() {
 	angle = getAngle(this.aVec);
 
 	this.curvePoints = [];
-	for (var t=this.extents[0]; t <= this.extents[1]; t++) {
+	for (var t=this.extents[0]; t <= this.extents[1]; t+=1) {
 		var x = t;
 		var y = (t)*(t)/(4*a)-a;
 		this.curvePoints.push(new THREE.Vector3(x*Math.cos(angle) - y*Math.sin(angle),
@@ -87,7 +90,9 @@ Parabola.prototype.updateGeometry = function() {
 	this.end_node.move(this.curvePoints[this.curvePoints.length-1])
 	this.start_node.move(this.curvePoints[0])
 	this.calculateBoundingLines();
+	this.calculateBoundingLines2();
 	this.createPolygon();
+	this.createPolygon2();
 }
 
 Parabola.prototype.moveCurve = function(position) {
@@ -210,6 +215,110 @@ Parabola.prototype.calculateBoundingLines = function() {
 	// console.log(this.borderPoints);
 }
 
+Parabola.prototype.calculateBoundingLines2 = function() {
+	this.borderPoints2 = [];
+	// globals.threeView.sceneRemove(this.boundingLines[2])
+	// globals.threeView.sceneRemove(this.boundingLines[3])
+
+	// var ray = new THREE.Ray(this.end_node.getPosition(),this.aVec);
+	// var box = new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,-10),
+	// 						 new THREE.Vector3(globals.xmax,globals.ymax,10));
+	// var intersect1 = ray.intersectBox(box)
+	
+	// var lineGeo = new THREE.Geometry();
+	// lineGeo.vertices = [this.end_node.getPosition(),intersect1];
+	// this.boundingLines[2] = new THREE.Line(lineGeo, lineMat);
+	// globals.threeView.sceneAdd(this.boundingLines[2]);
+
+	// ray = new THREE.Ray(this.start_node.getPosition(),this.aVec);
+	// box = new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,-10),
+	// 					 new THREE.Vector3(globals.xmax,globals.ymax,10));
+	// var intersect2 = ray.intersectBox(box)
+	
+	// lineGeo = new THREE.Geometry();
+	// lineGeo.vertices = [this.start_node.getPosition(),intersect2];
+	// this.boundingLines[3] = new THREE.Line(lineGeo, lineMat);
+	// globals.threeView.sceneAdd(this.boundingLines[3]);
+
+	// var intersects = [];
+	for (var i=0; i < this.curvePoints.length; i++) {
+		ray = new THREE.Ray(this.curvePoints[i],this.aVec);
+		box = new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,-10),
+						 	 new THREE.Vector3(globals.xmax,globals.ymax,10));
+	 	this.borderPoints2.push(ray.intersectBox(box));
+	}
+
+
+	// // checkCorners
+	// corner0 = new THREE.Vector3(globals.xmin,globals.ymin,0);
+	// corner1 = new THREE.Vector3(globals.xmin,globals.ymax,0);
+	// corner2 = new THREE.Vector3(globals.xmax,globals.ymin,0);
+	// corner3 = new THREE.Vector3(globals.xmax,globals.ymax,0);
+
+	// var A = this.start_node.getPosition().sub(this.focus);
+	// var B = this.end_node.getPosition().sub(this.focus);
+	// var C = corner1.clone().sub(this.focus);
+
+	// this.borderPoints2.push(intersect1);
+
+	// if (Math.abs(intersect1.x - globals.xmin) < 1) {
+	// 	if (vectorBetweenVectors(A,B,corner0.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner0)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner2.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner2)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner3.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner3)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner1.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner1)
+	// 	}
+	// } else if (Math.abs(intersect1.y - globals.ymin) < 1) {
+	// 	if (vectorBetweenVectors(A,B,corner2.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner2)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner3.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner3)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner1.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner1)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner0.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner0)
+	// 	}
+	// } else if (Math.abs(intersect1.x - globals.xmax) < 1) {
+	// 	if (vectorBetweenVectors(A,B,corner3.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner3)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner1.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner1)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner0.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner0)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner2.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner2)
+	// 	}
+	// } else if (Math.abs(intersect1.y - globals.ymax) < 1){
+	// 	if (vectorBetweenVectors(A,B,corner1.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner1)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner0.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner0)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner2.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner2)
+	// 	}
+	// 	if (vectorBetweenVectors(A,B,corner3.clone().sub(this.focus))) {
+	// 		this.borderPoints2.push(corner3)
+	// 	}
+	// }
+
+	// this.borderPoints2.push(intersect2);
+	// console.log(this.borderPoints);
+}
+
 Parabola.prototype.createPolygon = function() {
 	globals.threeView.sceneRemove(this.polygon);
 
@@ -231,4 +340,23 @@ Parabola.prototype.createPolygon = function() {
 	this.polygon = new THREE.Mesh(polyGeom,polyMat);
 	
 	globals.threeView.sceneAdd(this.polygon);
+}
+
+Parabola.prototype.createPolygon2 = function() {
+	globals.threeView.sceneRemove(this.polygon2);
+
+	var polyGeom = new THREE.Geometry();
+
+	for (var i=0; i < this.curvePoints.length; i++) {
+		polyGeom.vertices.push(this.curvePoints[i]);
+		polyGeom.vertices.push(this.borderPoints2[i]);
+	}
+
+	for (var i=2; i < polyGeom.vertices.length; i++) {
+		polyGeom.faces.push(new THREE.Face3(i,i-1,i-2));
+	}
+
+	this.polygon2 = new THREE.Mesh(polyGeom,polyMat2);
+	
+	globals.threeView.sceneAdd(this.polygon2);
 }

@@ -12,16 +12,6 @@ $(function() {
     var p2 = new Parabola(new THREE.Vector3(-50,50,0),new THREE.Vector3(0,-10,0),[-50,50]);
     console.log(p)
 
-    // _.each(nodePositions, function(pos){
-        // var position = new THREE.Vector3(10,20,0);
-        // var node = new Node(position, globals);
-        // globals.addNode(node);
-    // });
-    // _.each(edgeConnections, function(connection){
-    //     var edge = new Beam([globals.nodes[connection[0]], globals.nodes[connection[1]]], globals);
-    //     globals.addEdge(edge);
-    // });
-
     globals.threeView.render();
 
     var raycaster = new THREE.Raycaster();
@@ -32,7 +22,6 @@ $(function() {
     var isDraggingNode = false;
     var isDraggingForce = false;
     var mouseDown = false;
-    var beamInProgress = null;
 
     function setHighlightedObj(object){
         if (highlightedObj && (object != highlightedObj)) {

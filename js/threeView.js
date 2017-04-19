@@ -154,8 +154,21 @@ function initThreeView(globals) {
         return thirdPassScene.children.concat(wrapper.children);
     }
 
+    function getCurvesToIntersect(exceptThis){
+        var intersectCurves = [];
+        for (var i=0; i<wrapper.children.length; i++) {
+            if (wrapper.children[i].type == "Line") {
+                if (wrapper.children[i] != exceptThis) {
+                    intersectCurves.push(wrapper.children[i]);
+                }
+            }
+        }
+        return intersectCurves;
+    }
+
     return {
         getObjToIntersect: getObjToIntersect,
+        getCurvesToIntersect: getCurvesToIntersect,
         sceneRemove: sceneRemove,
         sceneAdd: sceneAdd,
         sceneClear: sceneClear,

@@ -36,6 +36,9 @@ function initGlobals(){
         ymin: -window.innerHeight/2.0,
         ymax: window.innerHeight/2.0,
 
+        boundingBox: new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,0),
+                                    new THREE.Vector3(globals.xmax,globals.ymax,0)),
+
         nodes : [],
         addNode: addNode,
         removeNode: removeNode,

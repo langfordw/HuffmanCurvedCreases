@@ -47,34 +47,10 @@ $(function() {
         } else if (e.keyCode == 27){
             globals.linked.deselectAll();
         }
-        //console.log(e.keyCode);
     });
 
 
     $(document).dblclick(function() {
-        if (highlightedObj && highlightedObj.type == "node"){
-            if (globals.lockTopology) return;
-            beamInProgress = new BeamBuilding(highlightedObj, highlightedObj.getPosition(), globals);
-            setHighlightedObj(null);
-        } else if (highlightedObj && highlightedObj.type == "beam"){
-            if (globals.lockTopology) return;
-            var position = getPointOfIntersectionWithObject(highlightedObj.getObject3D());
-            if (position === null) return;
-            var oldEdge = highlightedObj;
-            var node = new Node(position, globals);
-            globals.addNode(node);
-            var connectedNodes = oldEdge.getNodes();
-            var beam1 = new Beam([connectedNodes[0], node], globals);
-            globals.addEdge(beam1);
-            var beam2 = new Beam([connectedNodes[1], node], globals);
-            globals.addEdge(beam2);
-            setHighlightedObj(node);
-            globals.removeEdge(oldEdge);
-            // globals.solver.resetK_matrix();
-            // globals.solver.resetF_matrix();
-            // globals.solver.solve();
-            globals.controls.viewModeCallback();
-        }
     });
 
     document.addEventListener('mousedown', function(e){
@@ -82,8 +58,6 @@ $(function() {
         switch (e.which) {
         case 1://left button
             mouseDown = true;
-            // console.log("mouse down")
-            // console.log(highlightedObj)
             break;
         case 2://middle button
             break;
@@ -99,23 +73,6 @@ $(function() {
                     highlightedObj.moveManually(_position);
                     globals.linked.move(highlightedObj, _position);
                     // globals.solver.resetK_matrix();
-                    // globals.solver.solve();
-                    globals.threeView.render();
-                });
-            } else if (highlightedObj && highlightedObj.type == "beam"){
-                //globals.controls.editMoreInfo(highlightedObj.getLength().toFixed(2), e, function(val){
-                //    console.log(val);
-                //});
-            } else if (highlightedObj && highlightedObj.type == "force"){
-                var force = highlightedObj.getForce();
-                globals.controls.editMoreInfoXY({x:force.x.toFixed(2), y:force.y.toFixed(2)}, e, function(val, axis){
-                    val = parseFloat(val);
-                    if (isNaN(val)) return;
-                    var _force = highlightedObj.getForce();
-                    _force[axis] = val;
-                    highlightedObj.setForce(_force);
-                    // globals.solver.resetF_matrix();
-                    // globals.gradient.resetF_matrix();
                     // globals.solver.solve();
                     globals.threeView.render();
                 });

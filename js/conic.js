@@ -69,7 +69,6 @@ function Parabola(focus,aVec,extents) {
     this.updateGeometry();
 }
 
-
 Parabola.prototype.computeCurve = function() {
 	globals.threeView.sceneRemove(this.curve);
 
@@ -236,73 +235,6 @@ Parabola.prototype.calculateInteriorBoundingLines2 = function() {
 	 	this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
 	 				this.curvePoints[i].clone().sub(this.focus)));
 	}
-
-	// // checkCorners
-	// bottomLeftCorner = new THREE.Vector3(globals.xmin,globals.ymin,0);
-	// topLeftCorner = new THREE.Vector3(globals.xmin,globals.ymax,0);
-	// bottomRightCorner = new THREE.Vector3(globals.xmax,globals.ymin,0);
-	// topRightCorner = new THREE.Vector3(globals.xmax,globals.ymax,0);
-
-	// var A = this.start_node.getPosition().sub(this.focus);
-	// var B = this.end_node.getPosition().sub(this.focus);
-
-	// this.interiorBorderPoints.push(end_intersect);
-
-	// if (Math.abs(end_intersect.x - globals.xmin) < 1) {
-	// 	if (vectorBetweenVectors(A,B,bottomLeftCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(bottomLeftCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,bottomRightCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(bottomRightCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,topRightCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(topRightCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,topLeftCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(topLeftCorner)
-	// 	}
-	// } else if (Math.abs(end_intersect.y - globals.ymin) < 1) {
-	// 	if (vectorBetweenVectors(A,B,bottomRightCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(bottomRightCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,topRightCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(topRightCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,topLeftCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(topLeftCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,bottomLeftCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(bottomLeftCorner)
-	// 	}
-	// } else if (Math.abs(end_intersect.x - globals.xmax) < 1) {
-	// 	if (vectorBetweenVectors(A,B,topRightCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(topRightCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,topLeftCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(topLeftCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,bottomLeftCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(bottomLeftCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,bottomRightCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(bottomRightCorner)
-	// 	}
-	// } else if (Math.abs(end_intersect.y - globals.ymax) < 1){
-	// 	if (vectorBetweenVectors(A,B,topLeftCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(topLeftCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,bottomLeftCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(bottomLeftCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,bottomRightCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(bottomRightCorner)
-	// 	}
-	// 	if (vectorBetweenVectors(A,B,topRightCorner.clone().sub(this.focus))) {
-	// 		this.interiorBorderPoints.push(topRightCorner)
-	// 	}
-	// }
-
-	// this.interiorBorderPoints.push(start_intersect);
 }
 
 

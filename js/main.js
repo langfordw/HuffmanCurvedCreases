@@ -14,8 +14,8 @@ $(function() {
     var poly1 = CSG.fromPolygons([p.interiorPolygonVertices]);
     var poly2 = CSG.fromPolygons([p2.interiorPolygonVertices]);
 
-    console.log(poly1)
-    console.log(poly2)
+    console.log(poly1);
+    console.log(poly2);
 
     var intersection = poly1.intersect(poly2);
     var intersectionVertices = intersection.toPolygons()[10];

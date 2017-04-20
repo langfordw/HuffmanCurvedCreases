@@ -8,8 +8,17 @@ $(function() {
 
     globals = initGlobals();
 
-    var p = new Parabola(new THREE.Vector3(50,50,0),new THREE.Vector3(0,-10,0),[-50,50],1);
-    var p2 = new Parabola(new THREE.Vector3(-50,50,0),new THREE.Vector3(0,-10,0),[-50,50],0);
+    var p = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-30,0),[-100,100],1);
+    var p2 = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-20,0),[-100,100],0);
+
+    var poly1 = CSG.fromPolygons(p.interiorPolygonVertices);
+    var poly2 = CSG.fromPolygons(p2.interiorPolygonVertices);
+
+    console.log(poly1)
+    console.log(poly2)
+
+    var intersection = poly1.intersect(poly2);
+    console.log(intersection);
     console.log(p)
 
     globals.threeView.render();

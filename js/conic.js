@@ -1,5 +1,16 @@
+// To do:
+// - debug raycasting to curve
+// - implement ellipse
+// - implement hyperbola
+// - implement sinusoid
+// - add numeric controls to each conic
+// - add notion of "canvas" or border --> display it
+// - add export to SVG / Zund
+
+
 var lineMat = new THREE.LineBasicMaterial({color: 0x000077});
 var curveMat = new THREE.LineBasicMaterial({color: 0xff0000});
+var boundaryMat = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 2});
 var polyMat = new THREE.MeshBasicMaterial({color: 0x005500, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: false});
 var polyMat2 = new THREE.MeshBasicMaterial({color: 0x000055, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: false});
 var polyMatWire = new THREE.MeshBasicMaterial({color: 0x444444, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: true});
@@ -35,17 +46,15 @@ function getBoundaryIntersection(fromPoint,alongVector) {
 }
 
 function getCurveIntersection(fromPoint,alongVector,exceptCurve) {
-	var raycaster = new THREE.Raycaster(fromPoint,alongVector);
-	var intersects = raycaster.intersectObjects(globals.threeView.getCurvesToIntersect(exceptCurve));
+	var raycaster = new THREE.Raycaster(fromPoint,alongVector,0,Infinity);
+	raycaster.linePrecision = 1;
+	console.log(globals.threeView.getCurvesToIntersect(exceptCurve))
+	var intersects = raycaster.intersectObjects(globals.threeView.getCurvesToIntersect(exceptCurve),true);
 	if (intersects[0] != undefined) {
-		// new Node(intersects[0].point,globals)
+		new Node(intersects[0].point,globals)
 		return intersects[0]
 	}
 	return null
-	// ray = new THREE.Ray(fromPoint,alongVector);
-	// box = new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,0),
-	// 					 new THREE.Vector3(globals.xmax,globals.ymax,0));
- // 	return ray.intersectBox(box);
 }
 
 function Parabola(focus,aVec,extents,polarity) {
@@ -66,6 +75,11 @@ function Parabola(focus,aVec,extents,polarity) {
 	this.polygon2 = null;
 	this.polyFrame = null;
 	this.polyFrame2 = null;
+
+	this.interiorPolygonBoundary = [];
+	this.interiorPolygonVertices = [];
+	this.exteriorPolygonBoundary = [];
+	this.exteriorPolygonVertices = [];
 
 	this.interiorBorderPoints = [];
 	this.exteriorBorderPoints = [];
@@ -116,8 +130,7 @@ Parabola.prototype.updateGeometry = function() {
 	this.calculateExteriorBoundingLines();
 	this.createInteriorPolygon();
 	this.createExteriorPolygon();
-	// console.log(globals.threeView.getCurvesToIntersect(this.curve))
-	console.log(getCurveIntersection(this.curvePoints[0],this.aVec.clone().negate(),this.curve));
+	console.log(getCurveIntersection(this.focus,this.aVec.clone().negate(),this.curve));
 }
 
 Parabola.prototype.moveCurve = function(position) {
@@ -230,20 +243,6 @@ Parabola.prototype.calculateInteriorBoundingLines = function() {
 
 		this.interiorBorderPoints.push(start_intersect);
 	} else {
-		// var end_intersect = getBoundaryIntersection(this.focus,this.end_node.getPosition().sub(this.focus))
-	
-		// var lineGeo = new THREE.Geometry();
-		// lineGeo.vertices = [this.end_node.getPosition(),end_intersect];
-		// this.boundingLines[0] = new THREE.Line(lineGeo, lineMat);
-		// globals.threeView.sceneAdd(this.boundingLines[0]);
-
-		// var start_intersect = getBoundaryIntersection(this.focus,this.start_node.getPosition().sub(this.focus))
-		
-		// lineGeo = new THREE.Geometry();
-		// lineGeo.vertices = [this.start_node.getPosition(),start_intersect];
-		// this.boundingLines[1] = new THREE.Line(lineGeo, lineMat);
-		// globals.threeView.sceneAdd(this.boundingLines[1]);
-
 		for (var i=0; i < this.curvePoints.length; i++) {
 		 	this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
 		 				this.curvePoints[i].clone().sub(this.focus)));
@@ -269,6 +268,7 @@ Parabola.prototype.calculateExteriorBoundingLines = function() {
 Parabola.prototype.createInteriorPolygon = function() {
 	globals.threeView.sceneRemove(this.polygon);
 	globals.threeView.sceneRemove(this.polyFrame);
+	globals.threeView.sceneRemove(this.interiorPolygonBoundary);
 
 	var polyGeom = new THREE.Geometry();
 
@@ -285,7 +285,25 @@ Parabola.prototype.createInteriorPolygon = function() {
 		for (var i=1; i < polyGeom.vertices.length; i++) {
 			polyGeom.faces.push(new THREE.Face3(0,i,i-1));
 		}
+
+		var polygonBoundaryGeom2 = new THREE.Geometry();
+		polygonBoundaryGeom2.vertices = [];
+		this.interiorPolygonBoundary = new THREE.Line(polygonBoundaryGeom2, boundaryMat);
+		
+		for (var i=0; i < this.curvePoints.length; i++) {
+			polygonBoundaryGeom2.vertices.push(this.curvePoints[i]);
+			this.interiorPolygonVertices.push([this.curvePoints[i].x,this.curvePoints[i].y]);
+		}
+		for (var i=0; i < this.interiorBorderPoints.length; i++) {
+			polygonBoundaryGeom2.vertices.push(this.interiorBorderPoints[i]);
+			this.interiorPolygonVertices.push([this.interiorBorderPoints[i].x,this.interiorBorderPoints[i].y]);
+		}
+		polygonBoundaryGeom2.vertices.push(this.curvePoints[0]);
+		this.interiorPolygonVertices.push([this.curvePoints[0].x,this.curvePoints[0].y]);
+
 	} else {
+		
+
 		for (var i=0; i < this.curvePoints.length; i++) {
 			polyGeom.vertices.push(this.curvePoints[i]);
 			polyGeom.vertices.push(this.interiorBorderPoints[i]);
@@ -294,11 +312,30 @@ Parabola.prototype.createInteriorPolygon = function() {
 		for (var i=2; i < polyGeom.vertices.length; i++) {
 			polyGeom.faces.push(new THREE.Face3(i,i-1,i-2));
 		}
+
+
+		var polygonBoundaryGeom2 = new THREE.Geometry();
+		polygonBoundaryGeom2.vertices = [];
+		this.interiorPolygonBoundary = new THREE.Line(polygonBoundaryGeom2, boundaryMat);
+		
+		for (var i=0; i < this.curvePoints.length; i++) {
+			polygonBoundaryGeom2.vertices.push(this.curvePoints[i]);
+			this.interiorPolygonVertices.push([this.curvePoints[i].x,this.curvePoints[i].y]);
+		}
+		for (var i=this.interiorBorderPoints.length-1; i >= 0; i--) {
+			polygonBoundaryGeom2.vertices.push(this.interiorBorderPoints[i]);
+			this.interiorPolygonVertices.push([this.interiorBorderPoints[i].x,this.interiorBorderPoints[i].y]);
+		}
+		polygonBoundaryGeom2.vertices.push(this.curvePoints[0]);
+		this.interiorPolygonVertices.push([this.curvePoints[0].x,this.curvePoints[0].y]);
+
 	}
+
 
 	this.polygon = new THREE.Mesh(polyGeom,polyMat);
 	this.polyFrame = new THREE.Mesh(polyGeom,polyMatWire);
 	
+	globals.threeView.sceneAdd(this.interiorPolygonBoundary);
 	globals.threeView.sceneAdd(this.polygon);
 	globals.threeView.sceneAdd(this.polyFrame);
 }
@@ -306,6 +343,7 @@ Parabola.prototype.createInteriorPolygon = function() {
 Parabola.prototype.createExteriorPolygon = function() {
 	globals.threeView.sceneRemove(this.polygon2);
 	globals.threeView.sceneRemove(this.polyFrame2);
+	globals.threeView.sceneRemove(this.exteriorPolygonBoundary);
 
 	var polyGeom = new THREE.Geometry();
 
@@ -318,9 +356,26 @@ Parabola.prototype.createExteriorPolygon = function() {
 		polyGeom.faces.push(new THREE.Face3(i,i-1,i-2));
 	}
 
+	var polygonBoundaryGeom = new THREE.Geometry();
+	polygonBoundaryGeom.vertices = [];
+	this.exteriorPolygonBoundary = new THREE.Line(polygonBoundaryGeom, boundaryMat);
+	
+
+	for (var i=0; i < this.curvePoints.length; i++) {
+		polygonBoundaryGeom.vertices.push(this.curvePoints[i]);
+		this.exteriorPolygonVertices.push([this.curvePoints[i].x,this.curvePoints[i].y])
+	}
+	for (var i=this.exteriorBorderPoints.length-1; i >= 0; i--) {
+		polygonBoundaryGeom.vertices.push(this.exteriorBorderPoints[i]);
+		this.exteriorPolygonVertices.push([this.exteriorBorderPoints[i].x,this.exteriorBorderPoints[i].y])
+	}
+	polygonBoundaryGeom.vertices.push(this.curvePoints[0]);
+	this.exteriorPolygonVertices.push([this.curvePoints[0].x,this.curvePoints[0].y])
+
 	this.polygon2 = new THREE.Mesh(polyGeom,polyMat2);
 	this.polyFrame2 = new THREE.Mesh(polyGeom,polyMatWire);
 	
+	globals.threeView.sceneAdd(this.exteriorPolygonBoundary);
 	globals.threeView.sceneAdd(this.polygon2);
 	globals.threeView.sceneAdd(this.polyFrame2);
 }

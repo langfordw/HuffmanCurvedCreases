@@ -7,6 +7,7 @@ globals = {};
 $(function() {
 
     globals = initGlobals();
+    
     var p = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-30,0),[-100,100],1);
     var p2 = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-20,0),[-100,100],0);
 

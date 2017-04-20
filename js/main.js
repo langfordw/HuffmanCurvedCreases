@@ -11,15 +11,24 @@ $(function() {
     var p = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-30,0),[-100,100],1);
     var p2 = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-20,0),[-100,100],0);
 
-    var poly1 = CSG.fromPolygons(p.interiorPolygonVertices);
-    var poly2 = CSG.fromPolygons(p2.interiorPolygonVertices);
+    var poly1 = CSG.fromPolygons([p.interiorPolygonVertices]);
+    var poly2 = CSG.fromPolygons([p2.interiorPolygonVertices]);
 
     console.log(poly1)
     console.log(poly2)
 
     var intersection = poly1.intersect(poly2);
-    console.log(intersection);
-    console.log(p)
+    var intersectionVertices = intersection.toPolygons()[10];
+    console.log(intersectionVertices)
+
+    var result = new THREE.Geometry();
+    for (var i=0; i < intersectionVertices.length; i++) {
+        result.vertices.push(new THREE.Vector3(intersectionVertices[i].x,intersectionVertices[i].y));
+    }
+    console.log(result.vertices)
+    
+    var outline = new THREE.Line(result, boundaryMat);
+    globals.threeView.sceneAdd(outline)
 
     globals.threeView.render();
 

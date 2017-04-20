@@ -335,7 +335,7 @@ Parabola.prototype.createInteriorPolygon = function() {
 	this.polygon = new THREE.Mesh(polyGeom,polyMat);
 	this.polyFrame = new THREE.Mesh(polyGeom,polyMatWire);
 	
-	globals.threeView.sceneAdd(this.interiorPolygonBoundary);
+	// globals.threeView.sceneAdd(this.interiorPolygonBoundary);
 	globals.threeView.sceneAdd(this.polygon);
 	globals.threeView.sceneAdd(this.polyFrame);
 }
@@ -375,7 +375,7 @@ Parabola.prototype.createExteriorPolygon = function() {
 	this.polygon2 = new THREE.Mesh(polyGeom,polyMat2);
 	this.polyFrame2 = new THREE.Mesh(polyGeom,polyMatWire);
 	
-	globals.threeView.sceneAdd(this.exteriorPolygonBoundary);
+	// globals.threeView.sceneAdd(this.exteriorPolygonBoundary);
 	globals.threeView.sceneAdd(this.polygon2);
 	globals.threeView.sceneAdd(this.polyFrame2);
 }

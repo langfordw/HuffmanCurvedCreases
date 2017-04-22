@@ -18,6 +18,8 @@ function initThreeView(globals) {
 
     init();
 
+    var lineObject;
+
     function init() {
 
         var container = $("#threeContainer");
@@ -157,11 +159,11 @@ function initThreeView(globals) {
     function getCurvesToIntersect(exceptThis){
         var intersectCurves = [];
         for (var i=0; i<wrapper.children.length; i++) {
-            if (wrapper.children[i].type == "Line") {
+            // if (wrapper.children[i].type == "Line") {
                 if (wrapper.children[i] != exceptThis) {
                     intersectCurves.push(wrapper.children[i]);
                 }
-            }
+            // }
         }
         return intersectCurves;
     }
@@ -185,6 +187,7 @@ function initThreeView(globals) {
         thirdPassSceneRemove: thirdPassSceneRemove,
         forthPassSceneAdd: forthPassSceneAdd,
         scene: scene,
-        camera: camera
+        camera: camera,
+        lineObject: lineObject,
     }
 }

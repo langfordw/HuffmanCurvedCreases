@@ -4,31 +4,51 @@
 
 globals = {};
 
+
 $(function() {
 
     globals = initGlobals();
     
-    var p = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-30,0),[-100,100],1);
+    var p = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-60,0),[-120,120],0);
+
+
+    // getCurveIntersection(p.focus,p.aVec,plane)
     var p2 = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-20,0),[-100,100],0);
 
-    var poly1 = CSG.fromPolygons([p.interiorPolygonVertices]);
-    var poly2 = CSG.fromPolygons([p2.interiorPolygonVertices]);
+    // var poly1 = CSG.fromPolygons([p.exteriorPolygonVertices]);
+    // var poly2 = CSG.fromPolygons([p2.exteriorPolygonVertices]);
 
-    console.log(poly1);
-    console.log(poly2);
+    // // console.log(poly1);
+    // // console.log(poly2);
 
-    var intersection = poly1.intersect(poly2);
-    var intersectionVertices = intersection.toPolygons()[10];
-    console.log(intersectionVertices)
+    // var intersection = poly1.intersect(poly2);
+    // console.log(intersection)
 
-    var result = new THREE.Geometry();
-    for (var i=0; i < intersectionVertices.length; i++) {
-        result.vertices.push(new THREE.Vector3(intersectionVertices[i].x,intersectionVertices[i].y));
-    }
-    console.log(result.vertices)
+    // var result = new THREE.Geometry();
+
+    // var intersectionVertices = intersection.toPolygons();
+
+
+    // // for (var i=0; i < intersection.segments.length; i++) {
+    // //     result.vertices.push(new THREE.Vector3(intersection.segments[i].vertices[0].x,intersection.segments[i].vertices[0].y,0))
+    // // }
+
+    // // var intersectionVertices = intersection.toPolygons();
+    // // console.log(intersectionVertices)
+
+    // console.log(intersectionVertices)
     
-    var outline = new THREE.Line(result, boundaryMat);
-    globals.threeView.sceneAdd(outline)
+    // for (var j=0; j < intersectionVertices.length; j++) {
+    //     // var j = 0;
+    //     for (var i=0; i < intersectionVertices[j].length; i++) {
+    //         // console.log(intersectionVertices[j][i])
+    //         result.vertices.push(new THREE.Vector3(intersectionVertices[j][i].x,intersectionVertices[j][i].y));
+    //     }
+    // }
+    // console.log(result.vertices)
+    
+    // var outline = new THREE.Line(result, boundaryMat);
+    // globals.threeView.sceneAdd(outline)
 
     globals.threeView.render();
 

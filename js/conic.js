@@ -46,15 +46,32 @@ function getBoundaryIntersection(fromPoint,alongVector) {
 }
 
 function getCurveIntersection(fromPoint,alongVector,exceptCurve) {
-	var raycaster = new THREE.Raycaster(fromPoint,alongVector,0,Infinity);
-	raycaster.linePrecision = 1;
-	console.log(globals.threeView.getCurvesToIntersect(exceptCurve))
-	var intersects = raycaster.intersectObjects(globals.threeView.getCurvesToIntersect(exceptCurve),true);
-	if (intersects[0] != undefined) {
-		new Node(intersects[0].point,globals)
-		return intersects[0]
-	}
-	return null
+	// var alongVector = new THREE.Vector3(0,300,0)
+	// var raycaster = new THREE.Raycaster(fromPoint.clone().add(new THREE.Vector3(0,0,10)),alongVector,0,Infinity);
+	// raycaster.linePrecision = 5;
+	// console.log("curves to intersect: ")
+	// console.log(globals.threeView.getCurvesToIntersect(exceptCurve))
+	// var intersects = raycaster.intersectObjects(globals.threeView.getCurvesToIntersect(exceptCurve),true);
+	// if (intersects[0] != undefined) {
+	// 	new Node(intersects[0].point,globals)
+	// 	return intersects[0]
+	// }
+	// return null
+
+	var creaseLine = new THREE.PlaneGeometry(400,20,1,1);
+    var plane = new THREE.Mesh(creaseLine, boundaryMat);
+    // plane.rotateX(Math.PI/2);
+    // plane.translateZ(-10);
+    // globals.threeView.sceneAdd(plane);
+
+    var box = new THREE.Box3(new THREE.Vector3(-200,-100,0),
+                             new THREE.Vector3(200,-100,0));
+
+	var ray = new THREE.Ray(fromPoint,alongVector);
+	// console.log(ray);
+	// console.log(plane)
+ 	// return ray.intersectPlane(plane);
+ 	return ray.intersectBox(box);
 }
 
 function Parabola(focus,aVec,extents,polarity) {
@@ -63,6 +80,7 @@ function Parabola(focus,aVec,extents,polarity) {
 
 	// input parameters
 	this.focus = focus; 	// the x,y,z focal point
+	this.focus2 = focus;
 	this.aVec = aVec; 			// vector from the focal point to the vertex
 	this.extents = extents; // the x-span of the function (orthogonal to aVec)
 	this.polarity = polarity // 1 is parallel lines on exterior, 0 is parallel lines on interior
@@ -89,6 +107,8 @@ function Parabola(focus,aVec,extents,polarity) {
 
     this.focus_node = new Node(this.focus,globals,"focus");
     this.focus_node.conic = this;
+    this.focus_node2 = new Node(this.focus2,globals,"focus");
+    this.focus_node2.conic = this;
     this.vertex_node = new Node(this.vertex, globals, "vertex");
     this.vertex_node.conic = this;
     this.start_node = new Node(this.curvePoints[0],globals,"start");
@@ -105,11 +125,15 @@ Parabola.prototype.computeCurve = function() {
 
 	var a = this.aVec.length();
 	angle = getAngle(this.aVec);
+	angle -= Math.PI/2
 
 	this.curvePoints = [];
 	for (var t=this.extents[0]; t <= this.extents[1]; t+=10) {
-		var x = t;
-		var y = (t)*(t)/(4*a)-a;
+		// var x = a/Math.cos(t/100);
+		// // var y = (t)*(t)/(4*a)-a;
+		// var y = a*Math.tan(t/100);
+		var x = a*Math.cos(t/100);
+		var y = a*Math.sin(t/100);
 		this.curvePoints.push(new THREE.Vector3(x*Math.cos(angle) - y*Math.sin(angle),
 										   		x*Math.sin(angle) + y*Math.cos(angle),
 										   		0).add(this.focus));
@@ -123,6 +147,7 @@ Parabola.prototype.computeCurve = function() {
 
 Parabola.prototype.updateGeometry = function() {
 	this.computeCurve();
+	this.focus_node2.move(this.focus.clone().add(this.aVec.clone().negate()));
 	this.vertex_node.move(this.focus.clone().add(this.aVec));
 	this.end_node.move(this.curvePoints[this.curvePoints.length-1])
 	this.start_node.move(this.curvePoints[0])
@@ -130,7 +155,8 @@ Parabola.prototype.updateGeometry = function() {
 	this.calculateExteriorBoundingLines();
 	this.createInteriorPolygon();
 	this.createExteriorPolygon();
-	console.log(getCurveIntersection(this.focus,this.aVec.clone().negate(),this.curve));
+	// var pos = getCurveIntersection(this.focus,this.aVec,this.curve);
+	// new Node(pos,globals)
 }
 
 Parabola.prototype.moveCurve = function(position) {
@@ -256,11 +282,28 @@ Parabola.prototype.calculateExteriorBoundingLines = function() {
 
 	if (this.polarity) {
 		for (var i=0; i < this.curvePoints.length; i++) {
+			// var intersects = getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]).negate(),this.curve);
+			// if (intersects != null) {
+			// 	this.exteriorBorderPoints.push(intersects[0])
+			// } else {
+			// 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec));
+			// }
+			// console.log(this.exteriorBorderPoints)
 		 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec));
+		 	// console.log(getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]).negate(),this.curve))
+
 		}
 	} else {
 		for (var i=0; i < this.curvePoints.length; i++) {
+			// var intersects = getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]).negate(),this.curve);
+			// if (intersects != null) {
+			// 	this.exteriorBorderPoints.push(intersects[0])
+			// } else {
+			// 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec.clone().negate()));
+			// }
+			// this.exteriorBorderPoints.push(getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]),this.curve))
 		 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec.clone().negate()));
+		 	// console.log(getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]),this.curve))
 		}
 	}
 }
@@ -337,7 +380,7 @@ Parabola.prototype.createInteriorPolygon = function() {
 	
 	// globals.threeView.sceneAdd(this.interiorPolygonBoundary);
 	globals.threeView.sceneAdd(this.polygon);
-	globals.threeView.sceneAdd(this.polyFrame);
+	// globals.threeView.sceneAdd(this.polyFrame);
 }
 
 Parabola.prototype.createExteriorPolygon = function() {
@@ -366,6 +409,7 @@ Parabola.prototype.createExteriorPolygon = function() {
 		this.exteriorPolygonVertices.push([this.curvePoints[i].x,this.curvePoints[i].y])
 	}
 	for (var i=this.exteriorBorderPoints.length-1; i >= 0; i--) {
+		console.log(i)
 		polygonBoundaryGeom.vertices.push(this.exteriorBorderPoints[i]);
 		this.exteriorPolygonVertices.push([this.exteriorBorderPoints[i].x,this.exteriorBorderPoints[i].y])
 	}
@@ -377,5 +421,5 @@ Parabola.prototype.createExteriorPolygon = function() {
 	
 	// globals.threeView.sceneAdd(this.exteriorPolygonBoundary);
 	globals.threeView.sceneAdd(this.polygon2);
-	globals.threeView.sceneAdd(this.polyFrame2);
+	// globals.threeView.sceneAdd(this.polyFrame2);
 }

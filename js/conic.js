@@ -93,17 +93,16 @@ function Conic(type,focus,orientation,a,b=0,extents,polarity) {
 	} else { // hyperbola or ellipse
 		if (this.type == "ellipse") {
 			this.c = Math.sqrt(this.a*this.a - this.b*this.b);
+			this.focusVertexVec = this.orientationVec.clone().multiplyScalar(this.c-this.a);
 		} else if (this.type == "hyperbola") {
 			this.c = Math.sqrt(this.a*this.a + this.b*this.b);
+			this.focusVertexVec = this.orientationVec.clone().multiplyScalar(this.c-this.a).negate();
 		}
 		this.secondaryFocusVec = this.orientationVec.clone().multiplyScalar(2*this.c);
 		this.secondaryFocus = this.focus.clone().sub(this.secondaryFocusVec);
 		console.log(this.secondaryFocusVec)
 	}
-	
-	console.log(this.c)
-	this.focusVertexVec = this.orientationVec.clone().multiplyScalar(this.c-this.a).negate();
-	// this.focusVertexVec = this.orientationVec.clone().multiplyScalar(this.c-this.a);
+
 	this.vertex = this.focus.clone().add(this.focusVertexVec);		// the x,y,z of the vertex
 	this.centerPoint = this.focus.clone().sub(this.secondaryFocusVec.clone().divideScalar(2));
 	this.curve = null;
@@ -191,10 +190,10 @@ Conic.prototype.updateGeometry = function() {
 	this.centerPoint = this.focus.clone().sub(this.secondaryFocusVec.clone().divideScalar(2));
 
 
-	// this.calculateInteriorBoundingLines();
-	// this.calculateExteriorBoundingLines();
-	// this.createInteriorPolygon();
-	// this.createExteriorPolygon();
+	this.calculateInteriorBoundingLines();
+	this.calculateExteriorBoundingLines();
+	this.createInteriorPolygon();
+	this.createExteriorPolygon();
 }
 
 Conic.prototype.moveCurve = function(position) {
@@ -244,14 +243,14 @@ Conic.prototype.calculateInteriorBoundingLines = function() {
 	globals.threeView.sceneRemove(this.boundingLines[1])
 
 	if (this.polarity) {
-		var end_intersect = getBoundaryIntersection(this.focus,this.end_node.getPosition().sub(this.focus))
+		var end_intersect = getBoundaryIntersection(this.focus,this.endNode.getPosition().sub(this.focus))
 		
 		// var lineGeo = new THREE.Geometry();
 		// lineGeo.vertices = [this.end_node.getPosition(),end_intersect];
 		// this.boundingLines[0] = new THREE.Line(lineGeo, lineMat);
 		// globals.threeView.sceneAdd(this.boundingLines[0]);
 
-		var start_intersect = getBoundaryIntersection(this.focus,this.start_node.getPosition().sub(this.focus))
+		var start_intersect = getBoundaryIntersection(this.focus,this.startNode.getPosition().sub(this.focus))
 		
 		// lineGeo = new THREE.Geometry();
 		// lineGeo.vertices = [this.start_node.getPosition(),start_intersect];
@@ -264,8 +263,8 @@ Conic.prototype.calculateInteriorBoundingLines = function() {
 		bottomRightCorner = new THREE.Vector3(globals.xmax,globals.ymin,0);
 		topRightCorner = new THREE.Vector3(globals.xmax,globals.ymax,0);
 
-		var A = this.start_node.getPosition().sub(this.focus);
-		var B = this.end_node.getPosition().sub(this.focus);
+		var A = this.startNode.getPosition().sub(this.focus);
+		var B = this.startNode.getPosition().sub(this.focus);
 
 		this.interiorBorderPoints.push(end_intersect);
 
@@ -465,7 +464,6 @@ Conic.prototype.createExteriorPolygon = function() {
 		this.exteriorPolygonVertices.push([this.curvePoints[i].x,this.curvePoints[i].y])
 	}
 	for (var i=this.exteriorBorderPoints.length-1; i >= 0; i--) {
-		console.log(i)
 		polygonBoundaryGeom.vertices.push(this.exteriorBorderPoints[i]);
 		this.exteriorPolygonVertices.push([this.exteriorBorderPoints[i].x,this.exteriorBorderPoints[i].y])
 	}

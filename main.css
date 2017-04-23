@@ -83,13 +83,14 @@ body{
     position: absolute;
     top:0;
     right:0;
-    width:400px;
+    width:300px;
     padding:20px 20px;
     overflow: auto;
     height: 100%;
     background: rgba(255,255,255,0.9);
     /*background: rgba(255,255,255,0.5);*/
 }
+
 #controls>a{
     float:right;
 }
@@ -118,10 +119,6 @@ body{
     padding-left:20px;
 }
 
-#gpuMathCanvas{
-    display: none;
-}
-
 a{
     color:#8cbaed;
 }
@@ -129,36 +126,6 @@ a:hover{
     color:#8cbaed;
 }
 
-#scaleBars, #tension-compressionScale{
-    height:100%;
-    padding: 20px 0 50px 10px;
-    width:100px;
-    position: absolute;
-    top:0;
-    right:-100px;
-    line-height: 0;
-    background: rgba(255,255,255,0.9);
-}
-
-#scaleBars>div, #tension-compressionScale>div{
-    width:100%;
-    height:4.7%;
-}
-.colorSwatch{
-    width:10px;
-    height:100%;
-    background: black;
-    display: inline-block;
-}
-
-#tension-compressionScale .colorSwatch{
-    width:5px!important;
-}
-#scaleBars>div>span, #tension-compressionScale>div>span{
-    margin-left: 7px;
-    top: -25%;
-    position: relative;
-}
 
 input.form-control {
     width: 90px;
@@ -342,7 +309,7 @@ span.modal-close{
     margin-bottom: 50px;
 }
 
-#FLContainer{
+#conicNameContainer{
     float: right;
 }
 

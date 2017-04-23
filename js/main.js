@@ -65,7 +65,6 @@ $(function() {
     function setHighlightedObj(object){
         if (highlightedObj && (object != highlightedObj)) {
             highlightedObj.unhighlight();
-            globals.controls.hideMoreInfo();
         }
         highlightedObj = object;
         if (highlightedObj) highlightedObj.highlight();
@@ -102,21 +101,6 @@ $(function() {
         case 2://middle button
             break;
         case 3://right button
-
-            if (highlightedObj && highlightedObj.type == "node"){
-                var position = highlightedObj.getPosition();
-                globals.controls.editMoreInfoXY({x:position.x.toFixed(2), y:position.y.toFixed(2)}, e, function(val, axis){
-                    val = parseFloat(val);
-                    if (isNaN(val)) return;
-                    var _position = highlightedObj.getPosition();
-                    _position[axis] = val;
-                    highlightedObj.moveManually(_position);
-                    globals.linked.move(highlightedObj, _position);
-                    // globals.solver.resetK_matrix();
-                    // globals.solver.solve();
-                    globals.threeView.render();
-                });
-            }
             break;
     }
 
@@ -127,14 +111,11 @@ $(function() {
     document.addEventListener('mouseup', function(e){
         if (isDraggingNode){
             isDraggingNode = false;
-            globals.threeView.enableControls(true);
+            // globals.threeView.enableControls(true);
         }
         if (isDraggingForce){
             isDraggingForce = false;
-            globals.threeView.enableControls(true);
-        }
-        if (shift && highlightedObj && highlightedObj.type == "node"){
-            globals.linked.selectNode(highlightedObj);
+            // globals.threeView.enableControls(true);
         }
         isDragging = false;
         mouseDown = false;
@@ -163,13 +144,13 @@ $(function() {
             if (highlightedObj.type == "node"){
                 if (!isDraggingNode) {
                     isDraggingNode = true;
-                    globals.threeView.enableControls(false);
+                    // globals.threeView.enableControls(false);
                 }
                 var intersection = getIntersectionWithObjectPlane(highlightedObj.getPosition());
                 var data = "Position: " +
                             "&nbsp;&nbsp;  x : " + intersection.x.toFixed(2) + "&nbsp;  y : " + intersection.y.toFixed(2);
-                if (!globals.xyOnly) data += "&nbsp;  z : " + intersection.z.toFixed(2);
-                globals.controls.showMoreInfo(data  + " m", e);
+
+                
                 highlightedObj.moveManually(intersection);
                 globals.controls.viewModeCallback();
             }

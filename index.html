@@ -5,7 +5,7 @@
     <title>Huffman Curved Creases</title>
 
     <link href="dependencies/bootstrap.min.css" rel="stylesheet" type="text/css"/>
-    <!-- <link rel="stylesheet" type="text/css" href="dependencies/flat-ui.min.css"/> -->
+    <link rel="stylesheet" type="text/css" href="dependencies/flat-ui.min.css"/>
     <link rel="stylesheet" type="text/css" href="dependencies/jquery-ui.min.css"/>
     <link rel="stylesheet" type="text/css" href="main.css"/>
 
@@ -25,7 +25,62 @@
     <script type="text/javascript" src="js/main.js"></script>
 </head>
 <body>
+
 <div  id="threeContainer"></div>
-<!-- <div id="controls"></div> -->
+
+<div id="controls">
+    <div id="conicNameContainer"> &nbsp; Conic Type: &nbsp; 
+        <span id="conicType"></span>
+    </div><br/><br/>
+    <div class="floatRight">Focus: &nbsp;&nbsp;
+        <input id="gradTolerance" value="" placeholder="Tolerance" class="form-control" type="text">
+    </div><br/><br/>
+    <a href="#" id="export" class="btn btn-lg btn-default">Make it!</a><br/><br/>
+</div>
+
+
+<div id="controlsLeft">
+    <a id="logo" target="_blank" href="http://cba.mit.edu/">
+        <img id="inactiveLogo" src="logo.png"/>
+        <img id="activeLogo" src="logo-active.png"/>
+    </a>
+    <a href="#" id="about" class="btn btn-lg btn-default">About</a><br/>
+    <div>
+        View Mode:
+        <div class="indent">
+            <label class="radio">
+                <input name="viewMode" value="geometry" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Crease Lines
+            </label>
+            <label class="radio">
+                <input name="viewMode" value="length" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Rulings
+            </label>
+            <label class="radio">
+                <input name="viewMode" value="force" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                    Polygons
+            </label>
+            <!--<label class="radio">-->
+                <!--<input name="viewMode" value="deformation" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>-->
+                    <!--Deformation (m)-->
+            <!--</label>-->
+        </div>
+    </div><br/>
+    <!-- <a href="#" id="download" class="btn btn-lg btn-default">Make it!</a> -->
+    <!--<a href="#" id="saveVariables" class="btn btn-lg btn-default">Save</a>-->
+</div>
+
+<div class="modal fade" id="aboutModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p><b>Huffman Curved Creases</b><br/><br/>
+            more coming...
+        </p>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 </body>
 </html>

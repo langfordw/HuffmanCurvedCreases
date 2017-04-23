@@ -5,9 +5,6 @@
 function initThreeView(globals) {
 
     var scene = new THREE.Scene();
-    var secondPassScene = new THREE.Scene();
-    var thirdPassScene = new THREE.Scene();
-    var forthPassScene = new THREE.Scene();
     var wrapper = new THREE.Object3D();
     var camera = new THREE.OrthographicCamera(window.innerWidth / -2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / -2, -1000, 1000);//-40, 40);
     var renderer = new THREE.WebGLRenderer({antialias: true});
@@ -28,28 +25,12 @@ function initThreeView(globals) {
 
         scene.background = new THREE.Color(0xf4f4f4);
         scene.add(wrapper);
-        //var directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-        //directionalLight1.position.set(0, 100, 0);
-        //scene.add(directionalLight1);
-        //var directionalLight4 = new THREE.DirectionalLight(0xffffff, 0.3);
-        //directionalLight4.position.set(0, -100, 0);
-        //scene.add(directionalLight4);
-        //var directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
-        //directionalLight2.position.set(100, -30, 0);
-        //scene.add(directionalLight2);
-        //var directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.8);
-        //directionalLight3.position.set(-100, -30, 0);
-        //scene.add(directionalLight3);
-        //var ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-        //scene.add(ambientLight);
-        //scene.fog = new THREE.FogExp2(0xf4f4f4, 1.7);
-        //renderer.setClearColor(scene.fog.color);
 
-        camera.zoom = 1;
-        camera.updateProjectionMatrix();
-        camera.position.x = 40;
-        camera.position.y = 40;
-        camera.position.z = 40;
+        // camera.zoom = 1;
+        // camera.updateProjectionMatrix();
+        // camera.position.x = 40;
+        // camera.position.y = 40;
+        // camera.position.z = 40;
 
         controls = new THREE.OrbitControls(camera, container.get(0));
         controls.addEventListener('change', render);
@@ -79,11 +60,6 @@ function initThreeView(globals) {
         renderer.clear();
         renderer.render(scene, camera);
         renderer.clearDepth();
-        renderer.render(thirdPassScene, camera);
-        renderer.clearDepth();
-        renderer.render(secondPassScene, camera);
-        renderer.clearDepth();
-        renderer.render(forthPassScene, camera);
     }
 
     function _loop(callback){
@@ -91,24 +67,6 @@ function initThreeView(globals) {
         requestAnimationFrame(function(){
             if (animating) _loop(callback);
         });
-    }
-
-    function secondPassSceneAdd(object){
-        secondPassScene.add(object);
-    }
-    function secondPassSceneRemove(object){
-        secondPassScene.remove(object);
-    }
-
-    function thirdPassSceneAdd(object){
-        thirdPassScene.add(object)
-    }
-    function thirdPassSceneRemove(object){
-        thirdPassScene.remove(object);
-    }
-
-    function forthPassSceneAdd(object){
-        forthPassScene.add(object);
     }
 
     function sceneAdd(object) {
@@ -140,9 +98,6 @@ function initThreeView(globals) {
         controls.enabled = state;
         if (!globals.xyOnly) controls.enableRotate = state;
     }
-    function enableRotate(state){
-        controls.enableRotate = state;
-    }
 
     function squareWithXY(){
         controls.reset();
@@ -153,7 +108,7 @@ function initThreeView(globals) {
     }
 
     function getObjToIntersect(){
-        return thirdPassScene.children.concat(wrapper.children);
+        return scene.children.concat(wrapper.children);
     }
 
     function getCurvesToIntersect(exceptThis){
@@ -179,13 +134,7 @@ function initThreeView(globals) {
         startAnimation: startAnimation,
         stopAnimation: stopAnimation,
         enableControls: enableControls,
-        enableRotate: enableRotate,
         squareWithXY: squareWithXY,
-        secondPassSceneAdd: secondPassSceneAdd,
-        secondPassSceneRemove: secondPassSceneRemove,
-        thirdPassSceneAdd: thirdPassSceneAdd,
-        thirdPassSceneRemove: thirdPassSceneRemove,
-        forthPassSceneAdd: forthPassSceneAdd,
         scene: scene,
         camera: camera,
         lineObject: lineObject,

@@ -9,11 +9,11 @@ $(function() {
 
     globals = initGlobals();
     
-    var p = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-60,0),[-120,120],0);
+    var p = new Conic("ellipse", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0);
 
 
     // getCurveIntersection(p.focus,p.aVec,plane)
-    var p2 = new Parabola(new THREE.Vector3(0,50,0),new THREE.Vector3(0,-20,0),[-100,100],0);
+    // var p2 = new (new THREE.Vector3(0,50,0),new THREE.Vector3(0,-20,0),[-100,100],0);
 
     // var poly1 = CSG.fromPolygons([p.exteriorPolygonVertices]);
     // var poly2 = CSG.fromPolygons([p2.exteriorPolygonVertices]);
@@ -96,6 +96,7 @@ $(function() {
         switch (e.which) {
         case 1://left button
             mouseDown = true;
+            console.log(highlightedObj)
             break;
         case 2://middle button
             break;

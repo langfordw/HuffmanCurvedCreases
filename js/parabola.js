@@ -74,32 +74,19 @@ function getCurveIntersection(fromPoint,alongVector,exceptCurve) {
  	return ray.intersectBox(box);
 }
 
-function Conic(type,focus,orientation,a,b=0,extents,polarity) {
+function Parabola(focus,aVec,extents,polarity) {
+
+	this.type = "parabola";
 
 	// input parameters
-	this.type = type;
 	this.focus = focus; 	// the x,y,z focal point
-	this.a = a;
-	this.b = b;
-	this.orientationVec = orientation; // unit vector pointing from focal point to vertex
+	this.focus2 = focus;
+	this.aVec = aVec; 			// vector from the focal point to the vertex
 	this.extents = extents; // the x-span of the function (orthogonal to aVec)
 	this.polarity = polarity // 1 is parallel lines on exterior, 0 is parallel lines on interior
 
 	// dependent variables
-	this.c = Math.sqrt(this.a*this.a + this.b*this.b);
-	this.secondaryFocusVec = null;
-	if (this.type == "parabola") {
-		this.secondaryFocus = null;
-	} else { // hyperbola or ellipse
-		this.secondaryFocusVec= this.orientationVec.clone().multiplyScalar(2*this.c);
-		this.secondaryFocus = this.focus.clone().sub(this.secondaryFocusVec);
-		console.log(this.secondaryFocusVec)
-	}
-	
-	console.log(this.c)
-	this.focusVertexVec = this.orientationVec.clone().multiplyScalar(this.c-this.a).negate();
-	this.vertex = this.focus.clone().add(this.focusVertexVec);		// the x,y,z of the vertex
-	this.centerPoint = this.focus.clone().sub(this.secondaryFocusVec.clone().divideScalar(2));
+	this.vertex = this.focus.clone().add(this.aVec);		// the x,y,z of the vertex
 	this.curve = null;
 	this.curvePoints = [];
 	this.polygon = null;
@@ -118,42 +105,38 @@ function Conic(type,focus,orientation,a,b=0,extents,polarity) {
 
 	this.computeCurve();
 
-    this.focusNode = new Node(this.focus,globals,"focus");
-    this.focusNode.conic = this;
-    this.secondaryFocusNode = new Node(this.secondaryFocus,globals,"secondaryFocus");
-    this.secondaryFocus.conic = this;
-    this.vertexNode = new Node(this.vertex, globals, "vertex");
-    this.vertexNode.conic = this;
-    this.startNode = new Node(this.curvePoints[0],globals,"start");
-    this.startNode.conic = this;
-    this.endNode = new Node(this.curvePoints[this.curvePoints.length-1],globals,"end")
-    this.endNode.conic = this;
+    this.focus_node = new Node(this.focus,globals,"focus");
+    this.focus_node.conic = this;
+    this.focus_node2 = new Node(this.focus2,globals,"focus");
+    this.focus_node2.conic = this;
+    this.vertex_node = new Node(this.vertex, globals, "vertex");
+    this.vertex_node.conic = this;
+    this.start_node = new Node(this.curvePoints[0],globals,"start");
+    this.start_node.conic = this;
+    this.end_node = new Node(this.curvePoints[this.curvePoints.length-1],globals,"end")
+    this.end_node.conic = this;
 
     this.updateGeometry();
 
 }
 
-Conic.prototype.computeCurve = function() {
+Parabola.prototype.computeCurve = function() {
 	globals.threeView.sceneRemove(this.curve);
 
-	var angle = getAngle(this.orientationVec);
-	angle -= Math.PI/2;
+	var a = this.aVec.length();
+	angle = getAngle(this.aVec);
+	angle -= Math.PI/2
 
 	this.curvePoints = [];
-	var x, y;
 	for (var t=this.extents[0]; t <= this.extents[1]; t+=10) {
-		if (this.type == "ellipse") {
-			x = this.a*Math.cos(t/100);
-			y = this.b*Math.sin(t/100);
-		} else if (this.type == "hyperbola") {
-			x = this.a/Math.cos(t/100);
-			y = this.b*Math.tan(t/100);
-		}
-
+		// var x = a/Math.cos(t/100);
+		// // var y = (t)*(t)/(4*a)-a;
+		// var y = a*Math.tan(t/100);
+		var x = a*Math.cos(t/100);
+		var y = a*Math.sin(t/100);
 		this.curvePoints.push(new THREE.Vector3(x*Math.cos(angle) - y*Math.sin(angle),
 										   		x*Math.sin(angle) + y*Math.cos(angle),
-										   		0).sub(this.orientationVec.clone().multiplyScalar(this.c)).add(this.focus));
-		//.sub(this.focus.clone().sub(this.centerPoint)));//
+										   		0).add(this.focus));
     }
 
     var curveGeo = new THREE.Geometry();
@@ -162,66 +145,43 @@ Conic.prototype.computeCurve = function() {
 	globals.threeView.sceneAdd(this.curve);
 }
 
-Conic.prototype.updateGeometry = function() {
+Parabola.prototype.updateGeometry = function() {
 	this.computeCurve();
-	
-	console.log(this.centerPoint)
-	this.secondaryFocusNode.move(this.focus.clone().sub(this.secondaryFocusVec));
-	this.vertexNode.move(this.focus.clone().sub(this.orientationVec.clone().multiplyScalar(this.c-this.a)));
-	this.endNode.move(this.curvePoints[this.curvePoints.length-1])
-	this.startNode.move(this.curvePoints[0])
-	this.centerPoint = this.focus.clone().sub(this.secondaryFocusVec.clone().divideScalar(2));
-	// this.calculateInteriorBoundingLines();
-	// this.calculateExteriorBoundingLines();
-	// this.createInteriorPolygon();
-	// this.createExteriorPolygon();
+	this.focus_node2.move(this.focus.clone().add(this.aVec.clone().negate()));
+	this.vertex_node.move(this.focus.clone().add(this.aVec));
+	this.end_node.move(this.curvePoints[this.curvePoints.length-1])
+	this.start_node.move(this.curvePoints[0])
+	this.calculateInteriorBoundingLines();
+	this.calculateExteriorBoundingLines();
+	this.createInteriorPolygon();
+	this.createExteriorPolygon();
 	// var pos = getCurveIntersection(this.focus,this.aVec,this.curve);
 	// new Node(pos,globals)
 }
 
-Conic.prototype.moveCurve = function(position) {
-	this.focus = this.focusNode.getPosition().clone();
+Parabola.prototype.moveCurve = function(position) {
+	this.focus = this.focus_node.getPosition().clone();
 	this.updateGeometry();
 }
 
-Conic.prototype.moveVertex = function() {
-	this.vertex = this.vertexNode.getPosition();
-	this.focusVertexVec = this.vertex.clone().sub(this.focus);
-	this.orientationVec = this.focusVertexVec.clone().divideScalar(this.focusVertexVec.length()).negate();
-	
-	this.secondaryFocusVec= this.orientationVec.clone().multiplyScalar(2*this.c);
-	this.secondaryFocus = this.focus.clone().sub(this.secondaryFocusVec);
-	this.centerPoint = this.focus.clone().sub(this.secondaryFocusVec.clone().divideScalar(2));
-
-	this.a = this.vertex.clone().sub(this.centerPoint).length();
-	// this.a = this.c - this.focusVertexVec.clone().divideScalar(this.focusVertexVec.length());
-	// this.c = this.a-this.focusVertexVec.length();
-	// console.log(this.orientationVec)
+Parabola.prototype.moveVertex = function() {
+	this.vertex = this.vertex_node.getPosition();
+	this.aVec = this.vertex.clone().sub(this.focus);
 	this.updateGeometry();
 }
 
-Conic.prototype.moveExtents = function(type,position) {
-	var xaxis = this.focusVertexVec.clone().applyAxisAngle(new THREE.Vector3(0,0,1),-Math.PI/2).divideScalar(this.focusVertexVec.length());
+Parabola.prototype.moveExtents = function(type,position) {
+	var xaxis = this.aVec.clone().applyAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2).divideScalar(this.aVec.length());
 	if (type == "start") {
 		this.extents[0] = position.sub(this.focus).dot(xaxis);
-		if (this.type == "hyperbola") {
-			if (this.extents[0] < -156) {
-				this.extents[0] = -156;
-			}
-		}
 	}
 	else if (type == "end") {
 		this.extents[1] = position.sub(this.focus).dot(xaxis);
-		if (this.type == "hyperbola") {
-			if (this.extents[1] > 156) {
-				this.extents[1] = 156;
-			}
-		}
 	}
 	this.updateGeometry();
 }
 
-Conic.prototype.calculateInteriorBoundingLines = function() {
+Parabola.prototype.calculateInteriorBoundingLines = function() {
 	this.interiorBorderPoints = [];
 
 	globals.threeView.sceneRemove(this.boundingLines[0])
@@ -317,7 +277,7 @@ Conic.prototype.calculateInteriorBoundingLines = function() {
 }
 
 
-Conic.prototype.calculateExteriorBoundingLines = function() {
+Parabola.prototype.calculateExteriorBoundingLines = function() {
 	this.exteriorBorderPoints = [];
 
 	if (this.polarity) {
@@ -329,7 +289,7 @@ Conic.prototype.calculateExteriorBoundingLines = function() {
 			// 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec));
 			// }
 			// console.log(this.exteriorBorderPoints)
-		 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec));
+		 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec));
 		 	// console.log(getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]).negate(),this.curve))
 
 		}
@@ -342,13 +302,13 @@ Conic.prototype.calculateExteriorBoundingLines = function() {
 			// 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec.clone().negate()));
 			// }
 			// this.exteriorBorderPoints.push(getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]),this.curve))
-		 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec.clone().negate()));
+		 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec.clone().negate()));
 		 	// console.log(getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]),this.curve))
 		}
 	}
 }
 
-Conic.prototype.createInteriorPolygon = function() {
+Parabola.prototype.createInteriorPolygon = function() {
 	globals.threeView.sceneRemove(this.polygon);
 	globals.threeView.sceneRemove(this.polyFrame);
 	globals.threeView.sceneRemove(this.interiorPolygonBoundary);
@@ -423,7 +383,7 @@ Conic.prototype.createInteriorPolygon = function() {
 	// globals.threeView.sceneAdd(this.polyFrame);
 }
 
-Conic.prototype.createExteriorPolygon = function() {
+Parabola.prototype.createExteriorPolygon = function() {
 	globals.threeView.sceneRemove(this.polygon2);
 	globals.threeView.sceneRemove(this.polyFrame2);
 	globals.threeView.sceneRemove(this.exteriorPolygonBoundary);

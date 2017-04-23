@@ -86,18 +86,24 @@ function Conic(type,focus,orientation,a,b=0,extents,polarity) {
 	this.polarity = polarity // 1 is parallel lines on exterior, 0 is parallel lines on interior
 
 	// dependent variables
-	this.c = Math.sqrt(this.a*this.a + this.b*this.b);
+	
 	this.secondaryFocusVec = null;
 	if (this.type == "parabola") {
 		this.secondaryFocus = null;
 	} else { // hyperbola or ellipse
-		this.secondaryFocusVec= this.orientationVec.clone().multiplyScalar(2*this.c);
+		if (this.type == "ellipse") {
+			this.c = Math.sqrt(this.a*this.a - this.b*this.b);
+		} else if (this.type == "hyperbola") {
+			this.c = Math.sqrt(this.a*this.a + this.b*this.b);
+		}
+		this.secondaryFocusVec = this.orientationVec.clone().multiplyScalar(2*this.c);
 		this.secondaryFocus = this.focus.clone().sub(this.secondaryFocusVec);
 		console.log(this.secondaryFocusVec)
 	}
 	
 	console.log(this.c)
 	this.focusVertexVec = this.orientationVec.clone().multiplyScalar(this.c-this.a).negate();
+	// this.focusVertexVec = this.orientationVec.clone().multiplyScalar(this.c-this.a);
 	this.vertex = this.focus.clone().add(this.focusVertexVec);		// the x,y,z of the vertex
 	this.centerPoint = this.focus.clone().sub(this.secondaryFocusVec.clone().divideScalar(2));
 	this.curve = null;
@@ -137,11 +143,17 @@ Conic.prototype.computeCurve = function() {
 	globals.threeView.sceneRemove(this.curve);
 
 	var angle = getAngle(this.orientationVec);
-	angle -= Math.PI/2;
+
+	if (this.type == "ellipse") {
+		angle += Math.PI/2;
+	} else if (this.type == "hyperbola") {
+		angle -= Math.PI/2;
+	}
 
 	this.curvePoints = [];
 	var x, y;
 	for (var t=this.extents[0]; t <= this.extents[1]; t+=10) {
+	// for (var t=0; t < Math.PI*200; t+=10) {
 		if (this.type == "ellipse") {
 			x = this.a*Math.cos(t/100);
 			y = this.b*Math.sin(t/100);
@@ -167,16 +179,22 @@ Conic.prototype.updateGeometry = function() {
 	
 	console.log(this.centerPoint)
 	this.secondaryFocusNode.move(this.focus.clone().sub(this.secondaryFocusVec));
-	this.vertexNode.move(this.focus.clone().sub(this.orientationVec.clone().multiplyScalar(this.c-this.a)));
+
+	if (this.type == "ellipse") {
+		this.vertexNode.move(this.focus.clone().add(this.orientationVec.clone().multiplyScalar(this.c-this.a)));
+	} else if (this.type == "hyperbola") {
+		this.vertexNode.move(this.focus.clone().add(this.orientationVec.clone().multiplyScalar(this.a-this.c)));
+	}
+
 	this.endNode.move(this.curvePoints[this.curvePoints.length-1])
 	this.startNode.move(this.curvePoints[0])
 	this.centerPoint = this.focus.clone().sub(this.secondaryFocusVec.clone().divideScalar(2));
+
+
 	// this.calculateInteriorBoundingLines();
 	// this.calculateExteriorBoundingLines();
 	// this.createInteriorPolygon();
 	// this.createExteriorPolygon();
-	// var pos = getCurveIntersection(this.focus,this.aVec,this.curve);
-	// new Node(pos,globals)
 }
 
 Conic.prototype.moveCurve = function(position) {
@@ -194,9 +212,7 @@ Conic.prototype.moveVertex = function() {
 	this.centerPoint = this.focus.clone().sub(this.secondaryFocusVec.clone().divideScalar(2));
 
 	this.a = this.vertex.clone().sub(this.centerPoint).length();
-	// this.a = this.c - this.focusVertexVec.clone().divideScalar(this.focusVertexVec.length());
-	// this.c = this.a-this.focusVertexVec.length();
-	// console.log(this.orientationVec)
+
 	this.updateGeometry();
 }
 

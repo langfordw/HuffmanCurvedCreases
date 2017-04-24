@@ -29,12 +29,12 @@ function initGlobals(){
         conic_resolution: 20, //
         rule_resolution: 20,
 
-        width: window.innerWidth,
-        height: window.innerHeight,
-        xmin: -window.innerWidth/2.0,
-        xmax: window.innerWidth/2.0,
-        ymin: -window.innerHeight/2.0,
-        ymax: window.innerHeight/2.0,
+        width: window.innerWidth*0.6,
+        height: window.innerHeight*0.6,
+        xmin: -window.innerWidth*0.6/2.0,
+        xmax: window.innerWidth*0.6/2.0,
+        ymin: -window.innerHeight*0.6/2.0,
+        ymax: window.innerHeight*0.6/2.0,
 
         boundingBox: new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,0),
                                     new THREE.Vector3(globals.xmax,globals.ymax,0)),

@@ -1,10 +1,8 @@
 // To do:
 // - debug raycasting to curve
-// - implement ellipse
-// - implement hyperbola
-// - implement sinusoid
-// - add numeric controls to each conic
-// - add notion of "canvas" or border --> display it
+// - fix intersection of curve with border
+// - reimplement parabola
+// - compute correct polygons for ellipse and hyperbola
 // - add export to SVG / Zund
 
 
@@ -518,15 +516,12 @@ Conic.prototype.removeObject = function(object){
 //deallocate
 
 Conic.prototype.destroy = function(){
-	console.log(this.polygon)
     if (this.deleting) return;
     this.deleting = true;
     for (var i=0; i < this.objectWrapper.length; i++) {
-    	console.log(this.objectWrapper[i])
     	globals.threeView.sceneRemove(this.objectWrapper[i]);
     	this.objectWrapper[i] = null;
     }
     this.objectWrapper = [];
     globals.threeView.render();
-    console.log(globals)
 };

@@ -11,6 +11,9 @@ function initThreeView(globals) {
     renderer.autoClear = false;
     var controls;
 
+    var canvasWidth = window.innerWidth*0.6;
+    var canvasHeight = window.innerHeight*0.6; 
+
     var animating = false;
 
     init();
@@ -23,8 +26,15 @@ function initThreeView(globals) {
         renderer.setSize(window.innerWidth, window.innerHeight);
         container.append(renderer.domElement);
 
-        scene.background = new THREE.Color(0xf4f4f4);
+        // scene.background = new THREE.Color(0xf4f4f4);
+        scene.background = new THREE.Color(0xe4e4e4);
         scene.add(wrapper);
+
+        var geometry = new THREE.PlaneGeometry( globals.width, globals.height, 1, 1 );
+        var material = new THREE.MeshBasicMaterial( {color: 0xf4f4f4, side: THREE.DoubleSide} );
+        var plane = new THREE.Mesh( geometry, material );
+        plane.translateZ(-1);
+        scene.add( plane );
 
         // camera.zoom = 1;
         // camera.updateProjectionMatrix();

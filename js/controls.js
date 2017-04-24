@@ -36,7 +36,6 @@ function initControls(globals){
 
     function viewModeCallback(){
         globals.threeView.render();
-        console.log(globals)
     }
 
     function viewModeChange(val){
@@ -44,42 +43,108 @@ function initControls(globals){
     }
 
     function updateControls() {
-        var conic = globals.selectedObject.conic;
+        if (globals.selectedObject != {} && globals.selectedObject.hasOwnProperty('conic')) {
+            var conic = globals.selectedObject.conic;
 
-        if (conic.type == undefined) { 
-            return; 
+            setRadio("conicType",conic.type);
+            setInput("#focusX",conic.focus.x);
+            setInput("#focusY",conic.focus.y);
+            setInput("#aDim",conic.a);
+            setInput("#bDim",conic.b);
+            setInput("#orientation",Math.atan2(conic.orientationVec.y,conic.orientationVec.x));
+            setInput("#extentsMin",conic.extents[0]);
+            setInput("#extentsMax",conic.extents[1]);
+            setRadio("polarity",conic.polarity);
         }
-        setRadio("conicType",conic.type);
-        setInput("#focusX",conic.focus.x);
-        setInput("#focusY",conic.focus.y);
-        setInput("#aDim",conic.a);
-        setInput("#bDim",conic.b);
-        setInput("#orientation",Math.atan2(conic.orientationVec.y,conic.orientationVec.x));
-        setInput("#extentsMin",conic.extents[0]);
-        setInput("#extentsMax",conic.extents[1]);
-        setRadio("polarity",conic.polarity);
     }
+
+    
 
     setRadio("viewMode", globals.viewMode, viewModeChange);
     viewModeChange(globals.viewMode);
-
-    // setInput("#focusX", globals.selectedObject.conic.focus.x, function(val){
-    //     globals.selectedObject.conic.focus.x = val;
-    // });
 
     setLink("#download", function(){
         var blob = new Blob([globals.getInfo()], {type: "text/plain;charset=utf-8"});
         saveAs(blob, "truss.txt");
     });
 
-    if (!globals.selectedObject.hasOwnProperty('conic')) {
-        globals.selectedObject.conic = {};
-        globals.selectedObject.conic.type = undefined;
-    }
 
-    setRadio("conicType", globals.selectedObject.conic.type, function(val) {
-        globals.selectedObject.conic.type = val;
+    setRadio("conicType", undefined, function(val) {
+        // globals.selectedObject.conic.type = val;
+        var old = globals.selectedObject.conic;
+        var newConic = new Conic(val,old.focus,old.orientationVec,old.a,old.b,old.extents,old.polarity)
+        globals.addConic(newConic);
+        old.destroy();
+        globals.selectedObject.conic = newConic;
     });
+
+    setInput("#focusX", undefined, function(val) {
+        var oldPosition = globals.selectedObject.conic.focusNode.getPosition();
+        globals.selectedObject.conic.focusNode.move(new THREE.Vector3(val,oldPosition.y,oldPosition.z));
+        globals.selectedObject.conic.moveCurve();
+    });
+
+    setInput("#focusY", undefined, function(val) {
+        var oldPosition = globals.selectedObject.conic.focusNode.getPosition();
+        globals.selectedObject.conic.focusNode.move(new THREE.Vector3(oldPosition.x,val,oldPosition.z));
+        globals.selectedObject.conic.moveCurve();
+    });
+
+    setInput("#aDim", undefined, function(val) {
+        var old = globals.selectedObject.conic;
+        var newConic = new Conic(old.type,old.focus,old.orientationVec,val,old.b,old.extents,old.polarity)
+        globals.addConic(newConic);
+        old.destroy();
+        globals.selectedObject.conic = newConic;
+    });
+
+    setInput("#bDim", undefined, function(val) {
+        var old = globals.selectedObject.conic;
+        var newConic = new Conic(old.type,old.focus,old.orientationVec,old.a,val,old.extents,old.polarity)
+        globals.addConic(newConic);
+        old.destroy();
+        globals.selectedObject.conic = newConic;
+    });
+
+    setInput("#orientation", undefined, function(val) {
+        var old = globals.selectedObject.conic;
+        var newOrientation = new THREE.Vector3(Math.cos(val),Math.sin(val),0);
+        var newConic = new Conic(old.type,old.focus,newOrientation,old.a,old.b,old.extents,old.polarity)
+        globals.addConic(newConic);
+        old.destroy();
+        globals.selectedObject.conic = newConic;
+    });
+
+    setInput("#extentsMin", undefined, function(val) {
+        var old = globals.selectedObject.conic;
+        var newConic = new Conic(old.type,old.focus,old.orientationVec,old.a,old.b,[val, old.extents[1]],old.polarity)
+        globals.addConic(newConic);
+        old.destroy();
+        globals.selectedObject.conic = newConic;
+    });
+
+    setInput("#extentsMax", undefined, function(val) {
+        var old = globals.selectedObject.conic;
+        var newConic = new Conic(old.type,old.focus,old.orientationVec,old.a,old.b,[old.extents[0], val],old.polarity)
+        globals.addConic(newConic);
+        old.destroy();
+        globals.selectedObject.conic = newConic;
+    });
+
+    setInput("#polarity", undefined, function(val) {
+        var old = globals.selectedObject.conic;
+        var newConic = new Conic(old.type,old.focus,old.orientationVec,old.a,old.b,old.extents,val)
+        globals.addConic(newConic);
+        old.destroy();
+        globals.selectedObject.conic = newConic;
+    });
+
+    // setInput("#aDim",conic.a);
+    // setInput("#bDim",conic.b);
+    // setInput("#orientation",Math.atan2(conic.orientationVec.y,conic.orientationVec.x));
+    // setInput("#extentsMin",conic.extents[0]);
+    // setInput("#extentsMax",conic.extents[1]);
+    // setRadio("polarity",conic.polarity);
 
     function setLink(id, callback){
         $(id).click(function(e){
@@ -112,8 +177,27 @@ function initControls(globals){
             $input.val(val);
             if (callback != undefined) { callback(val); }
         });
-        $input.val(val);
+        if (val != undefined) { $input.val(val); }
     }
+
+    // function setInputCallback(id, callback, min, max){
+    //     var $input = $(id);
+    //     $input.change(function(){
+    //         var val = $input.val();
+    //         if ($input.hasClass("int")){
+    //             if (isNaN(parseInt(val))) return;
+    //             val = parseInt(val);
+    //         } else {
+    //             if (isNaN(parseFloat(val))) return;
+    //             val = parseFloat(val);
+    //         }
+    //         if (min !== undefined && val < min) val = min;
+    //         if (max !== undefined && val > max) val = max;
+    //         $input.val(val);
+    //         if (callback != undefined) { callback(val); }
+    //     });
+    //     $input.val(val);
+    // }
 
     function setCheckbox(id, state, callback){
         var $input  = $(id);

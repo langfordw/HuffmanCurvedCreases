@@ -9,12 +9,12 @@ var nodeMaterialHighlight = new THREE.MeshBasicMaterial({color: 0x00ffff});
 var nodeGeo = new THREE.CircleGeometry(8);
 var nodeFixedGeo = new THREE.CubeGeometry(12, 12, 12);
 
-function Node(position, globals, type, noAdd){
+function Node(position, globals, type, conic, noAdd){
 
     this.type = "node";
     this.controlType = type;
 
-    this.conic = [];
+    this.conic = conic;
 
     if (noAdd === undefined){
         this.object3D = new THREE.Mesh(nodeGeo, nodeMaterial);

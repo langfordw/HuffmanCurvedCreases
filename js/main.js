@@ -8,6 +8,10 @@ globals = {};
 $(function() {
 
     globals = initGlobals();
+
+    globals.addConic( new Conic("parabola", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 0, [-120,120], 0) );
+    globals.addConic( new Conic("hyperbola", new THREE.Vector3(100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0) );
+    globals.addConic( new Conic("ellipse", new THREE.Vector3(-100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0) );
     
     // var e = new Conic("ellipse", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0);
     // var h = new Conic("hyperbola", new THREE.Vector3(100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0);

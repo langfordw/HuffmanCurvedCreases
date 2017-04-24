@@ -58,8 +58,6 @@ function initControls(globals){
         }
     }
 
-    
-
     setRadio("viewMode", globals.viewMode, viewModeChange);
     viewModeChange(globals.viewMode);
 
@@ -131,20 +129,14 @@ function initControls(globals){
         globals.selectedObject.conic = newConic;
     });
 
-    setInput("#polarity", undefined, function(val) {
+    setRadio("polarity", undefined, function(val) {
+        console.log(val)
         var old = globals.selectedObject.conic;
         var newConic = new Conic(old.type,old.focus,old.orientationVec,old.a,old.b,old.extents,val)
         globals.addConic(newConic);
         old.destroy();
         globals.selectedObject.conic = newConic;
     });
-
-    // setInput("#aDim",conic.a);
-    // setInput("#bDim",conic.b);
-    // setInput("#orientation",Math.atan2(conic.orientationVec.y,conic.orientationVec.x));
-    // setInput("#extentsMin",conic.extents[0]);
-    // setInput("#extentsMax",conic.extents[1]);
-    // setRadio("polarity",conic.polarity);
 
     function setLink(id, callback){
         $(id).click(function(e){
@@ -179,25 +171,6 @@ function initControls(globals){
         });
         if (val != undefined) { $input.val(val); }
     }
-
-    // function setInputCallback(id, callback, min, max){
-    //     var $input = $(id);
-    //     $input.change(function(){
-    //         var val = $input.val();
-    //         if ($input.hasClass("int")){
-    //             if (isNaN(parseInt(val))) return;
-    //             val = parseInt(val);
-    //         } else {
-    //             if (isNaN(parseFloat(val))) return;
-    //             val = parseFloat(val);
-    //         }
-    //         if (min !== undefined && val < min) val = min;
-    //         if (max !== undefined && val > max) val = max;
-    //         $input.val(val);
-    //         if (callback != undefined) { callback(val); }
-    //     });
-    //     $input.val(val);
-    // }
 
     function setCheckbox(id, state, callback){
         var $input  = $(id);

@@ -138,5 +138,6 @@ function initThreeView(globals) {
         scene: scene,
         camera: camera,
         lineObject: lineObject,
+        wrapper: wrapper
     }
 }

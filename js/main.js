@@ -9,8 +9,8 @@ $(function() {
 
     globals = initGlobals();
     
-    var e = new Conic("ellipse", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0);
-    var h = new Conic("hyperbola", new THREE.Vector3(100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0);
+    // var e = new Conic("ellipse", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0);
+    // var h = new Conic("hyperbola", new THREE.Vector3(100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0);
 
 
     // getCurveIntersection(p.focus,p.aVec,plane)
@@ -95,9 +95,9 @@ $(function() {
         switch (e.which) {
         case 1://left button
             mouseDown = true;
-            console.log(highlightedObj)
+            globals.controls.updateControls();
             if (highlightedObj) {
-               $('#conicType').html(highlightedObj.conic.type); 
+               console.log(highlightedObj)
             }
             break;
         case 2://middle button
@@ -152,15 +152,18 @@ $(function() {
                 var data = "Position: " +
                             "&nbsp;&nbsp;  x : " + intersection.x.toFixed(2) + "&nbsp;  y : " + intersection.y.toFixed(2);
 
-                globals.controls.setInput("#focusX", globals.selectedObject.conic.focus.x, function(val){
-                    globals.selectedObject.conic.focus.x = val;
-                    console.log('here')
-                    globals.selectedObject.conic.moveCurve();
-                });
-                globals.controls.setInput("#focusY", globals.selectedObject.conic.focus.y, function(val){
-                    globals.selectedObject.conic.focus.y = val;
-                    globals.selectedObject.conic.moveCurve();
-                });
+                // globals.controls.setInput("#focusX", globals.selectedObject.conic.focus.x, function(val){
+                //     globals.selectedObject.conic.focus.x = val;
+                //     console.log(globals.selectedObject.conic.focus)
+                //     globals.selectedObject.conic.focusNode.move(val,globals.selectedObject.conic.focus.y,0);
+                //     globals.selectedObject.conic.moveCurve();
+                // });
+                // globals.controls.setInput("#focusY", globals.selectedObject.conic.focus.y, function(val){
+                //     globals.selectedObject.conic.focus.y = val;
+                //     globals.selectedObject.conic.moveCurve();
+                // });
+
+                globals.controls.updateControls();
 
                 highlightedObj.moveManually(intersection);
                 globals.controls.viewModeCallback();

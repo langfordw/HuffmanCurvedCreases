@@ -29,13 +29,69 @@
 <div  id="threeContainer"></div>
 
 <div id="controls">
-    <div id="conicNameContainer"> &nbsp; Conic Type: &nbsp; 
-        <span id="conicType"></span>
-    </div><br/><br/>
+    <a href="#" id="addConic" class="btn btn-lg btn-default">Add Curve</a><br/><br/>
+    <div id="rightSideRadio">
+        Curve Type:
+        <div class="indent">
+            <label class="radio">
+                <input name="conicType" value="parabola" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Parabola
+            </label>
+            <label class="radio">
+                <input name="conicType" value="ellipse" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Ellipse
+            </label>
+            <label class="radio">
+                <input name="conicType" value="hyperbola" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Hyperbola
+            </label>
+        </div>
+    </div><br/>
+    <!-- <div id="conicNameContainer"> &nbsp; Conic Type: &nbsp; 
+        <span id="conicType">Undefined</span>
+    </div><br/> -->
     <div class="floatRight">Focus (X,Y): &nbsp;&nbsp;
         <input id="focusX" value="" placeholder="x" class="form-control" type="text">
         <input id="focusY" value="" placeholder="y" class="form-control" type="text">
     </div><br/><br/>
+    <div class="floatRight">A, B: &nbsp;&nbsp;
+        <input id="aDim" value="" placeholder="mm" class="form-control" type="text">
+        <input id="bDim" value="" placeholder="mm" class="form-control" type="text">
+    </div><br/><br/>
+    <div class="floatRight">Orientation: &nbsp;&nbsp;
+        <input id="orientation" value="" placeholder="degrees" class="form-control" type="text">
+    </div><br/><br/>
+    <div class="floatRight">Extents (min,max): &nbsp;&nbsp;
+        <input id="extentsMin" value="" placeholder="min" class="form-control" type="text">
+        <input id="extentsMax" value="" placeholder="max" class="form-control" type="text">
+    </div><br/><br/>
+
+    <div id="rightSideRadio">
+        Polarity:
+        <div class="indent">
+            <label class="radio">
+                <input name="polarity" value="0" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Converging
+            </label>
+            <label class="radio">
+                <input name="polarity" value="1" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Diverging
+            </label>
+        </div>
+    </div><br/><br/>
+
+    <div class="extraSpace">
+    </div><br/>
+
+    <a href="#" id="removeConic" class="btn btn-lg btn-default">Remove Curve</a><br/><br/>
+
+    <div class="extraSpace">
+    </div><br/>
+    <div class="extraSpace">
+    </div><br/>
+
+
+
     <a href="#" id="export" class="btn btn-lg btn-default">Make it!</a><br/><br/>
 </div>
 

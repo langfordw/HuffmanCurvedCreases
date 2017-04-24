@@ -15,7 +15,6 @@ var polyMat = new THREE.MeshBasicMaterial({color: 0x005500, side: THREE.DoubleSi
 var polyMat2 = new THREE.MeshBasicMaterial({color: 0x000055, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: false});
 var polyMatWire = new THREE.MeshBasicMaterial({color: 0x444444, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: true});
 
-
 function getAngle(vec1) {
 	return Math.atan2(vec1.y,vec1.x)+Math.PI/2;
 }
@@ -85,8 +84,9 @@ function Conic(type,focus,orientation,a,b=0,extents,polarity) {
 	this.extents = extents; // the x-span of the function (orthogonal to aVec)
 	this.polarity = polarity // 1 is parallel lines on exterior, 0 is parallel lines on interior
 
+	this.objectWrapper = [];
+
 	// dependent variables
-	
 	this.secondaryFocusVec = null;
 	if (this.type == "parabola") {
 		this.secondaryFocus = null;
@@ -100,17 +100,21 @@ function Conic(type,focus,orientation,a,b=0,extents,polarity) {
 		}
 		this.secondaryFocusVec = this.orientationVec.clone().multiplyScalar(2*this.c);
 		this.secondaryFocus = this.focus.clone().sub(this.secondaryFocusVec);
-		console.log(this.secondaryFocusVec)
 	}
 
 	this.vertex = this.focus.clone().add(this.focusVertexVec);		// the x,y,z of the vertex
 	this.centerPoint = this.focus.clone().sub(this.secondaryFocusVec.clone().divideScalar(2));
-	this.curve = null;
+	this.curve = {};
+	this.objectWrapper.push(this.curve);
 	this.curvePoints = [];
-	this.polygon = null;
-	this.polygon2 = null;
-	this.polyFrame = null;
-	this.polyFrame2 = null;
+	this.polygon = {};
+	this.objectWrapper.push(this.polygon);
+	this.polygon2 = {};
+	this.objectWrapper.push(this.polygon2);
+	this.polyFrame = {};
+	this.objectWrapper.push(this.polyFrame);
+	this.polyFrame2 = {};
+	this.objectWrapper.push(this.polyFrame2);
 
 	this.interiorPolygonBoundary = [];
 	this.interiorPolygonVertices = [];
@@ -121,25 +125,35 @@ function Conic(type,focus,orientation,a,b=0,extents,polarity) {
 	this.exteriorBorderPoints = [];
 	this.boundingLines = [];
 
+	this.deleting = false;
+
 	this.computeCurve();
 
     this.focusNode = new Node(this.focus,globals,"focus");
     this.focusNode.conic = this;
+    this.objectWrapper.push(this.focusNode.object3D);
     this.secondaryFocusNode = new Node(this.secondaryFocus,globals,"secondaryFocus");
-    this.secondaryFocus.conic = this;
+    this.secondaryFocusNode.conic = this;
+    this.objectWrapper.push(this.secondaryFocusNode.object3D);
     this.vertexNode = new Node(this.vertex, globals, "vertex");
     this.vertexNode.conic = this;
+    this.objectWrapper.push(this.vertexNode.object3D);
     this.startNode = new Node(this.curvePoints[0],globals,"start");
     this.startNode.conic = this;
+    this.objectWrapper.push(this.startNode.object3D);
     this.endNode = new Node(this.curvePoints[this.curvePoints.length-1],globals,"end")
     this.endNode.conic = this;
+    this.objectWrapper.push(this.endNode.object3D);
+
+    console.log(this.objectWrapper)
 
     this.updateGeometry();
 
 }
 
 Conic.prototype.computeCurve = function() {
-	globals.threeView.sceneRemove(this.curve);
+	// globals.threeView.sceneRemove(this.curve);
+	this.removeObject(this.curve);
 
 	var angle = getAngle(this.orientationVec);
 
@@ -170,13 +184,13 @@ Conic.prototype.computeCurve = function() {
     var curveGeo = new THREE.Geometry();
 	curveGeo.vertices = this.curvePoints;
 	this.curve = new THREE.Line(curveGeo, curveMat);
-	globals.threeView.sceneAdd(this.curve);
+	// globals.threeView.sceneAdd(this.curve);
+	this.addObject(this.curve);
 }
 
 Conic.prototype.updateGeometry = function() {
 	this.computeCurve();
 	
-	console.log(this.centerPoint)
 	this.secondaryFocusNode.move(this.focus.clone().sub(this.secondaryFocusVec));
 
 	if (this.type == "ellipse") {
@@ -366,9 +380,12 @@ Conic.prototype.calculateExteriorBoundingLines = function() {
 }
 
 Conic.prototype.createInteriorPolygon = function() {
-	globals.threeView.sceneRemove(this.polygon);
-	globals.threeView.sceneRemove(this.polyFrame);
-	globals.threeView.sceneRemove(this.interiorPolygonBoundary);
+	// globals.threeView.sceneRemove(this.polygon);
+	// globals.threeView.sceneRemove(this.polyFrame);
+	// globals.threeView.sceneRemove(this.interiorPolygonBoundary);
+	this.removeObject(this.polygon);
+	this.removeObject(this.polyFrame);
+	this.removeObject(this.interiorPolygonBoundary);
 
 	var polyGeom = new THREE.Geometry();
 
@@ -436,14 +453,18 @@ Conic.prototype.createInteriorPolygon = function() {
 	this.polyFrame = new THREE.Mesh(polyGeom,polyMatWire);
 	
 	// globals.threeView.sceneAdd(this.interiorPolygonBoundary);
-	globals.threeView.sceneAdd(this.polygon);
+	// globals.threeView.sceneAdd(this.polygon);
+	this.addObject(this.polygon);
 	// globals.threeView.sceneAdd(this.polyFrame);
 }
 
 Conic.prototype.createExteriorPolygon = function() {
-	globals.threeView.sceneRemove(this.polygon2);
-	globals.threeView.sceneRemove(this.polyFrame2);
-	globals.threeView.sceneRemove(this.exteriorPolygonBoundary);
+	this.removeObject(this.polygon2);
+	this.removeObject(this.polyFrame2);
+	this.removeObject(this.exteriorPolygonBoundary);
+	// globals.threeView.sceneRemove(this.polygon2);
+	// globals.threeView.sceneRemove(this.polyFrame2);
+	// globals.threeView.sceneRemove(this.exteriorPolygonBoundary);
 
 	var polyGeom = new THREE.Geometry();
 
@@ -476,6 +497,36 @@ Conic.prototype.createExteriorPolygon = function() {
 	this.polyFrame2 = new THREE.Mesh(polyGeom,polyMatWire);
 	
 	// globals.threeView.sceneAdd(this.exteriorPolygonBoundary);
-	globals.threeView.sceneAdd(this.polygon2);
+	// globals.threeView.sceneAdd(this.polygon2);
+	this.addObject(this.polygon2);
 	// globals.threeView.sceneAdd(this.polyFrame2);
 }
+
+Conic.prototype.addObject = function(object){
+	globals.threeView.sceneAdd(object);
+	this.objectWrapper.push(object);
+};
+
+Conic.prototype.removeObject = function(object){
+	globals.threeView.sceneRemove(object);
+	var index = this.objectWrapper.indexOf(object);
+    if (index>=0) { 
+    	this.objectWrapper.splice(index, 1);
+    }
+};
+
+//deallocate
+
+Conic.prototype.destroy = function(){
+	console.log(this.polygon)
+    if (this.deleting) return;
+    this.deleting = true;
+    for (var i=0; i < this.objectWrapper.length; i++) {
+    	console.log(this.objectWrapper[i])
+    	globals.threeView.sceneRemove(this.objectWrapper[i]);
+    	this.objectWrapper[i] = null;
+    }
+    this.objectWrapper = [];
+    globals.threeView.render();
+    console.log(globals)
+};

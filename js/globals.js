@@ -39,6 +39,8 @@ function initGlobals(){
         boundingBox: new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,0),
                                     new THREE.Vector3(globals.xmax,globals.ymax,0)),
 
+        selectedObject: null,
+
         nodes : [],
         addNode: addNode,
         removeNode: removeNode,

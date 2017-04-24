@@ -194,6 +194,8 @@ Conic.prototype.updateGeometry = function() {
 	this.calculateExteriorBoundingLines();
 	this.createInteriorPolygon();
 	this.createExteriorPolygon();
+
+	globals.threeView.render();
 }
 
 Conic.prototype.moveCurve = function(position) {

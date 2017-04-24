@@ -67,6 +67,9 @@ $(function() {
             highlightedObj.unhighlight();
         }
         highlightedObj = object;
+        if (object != null) {
+            globals.selectedObject = object;
+        }
         if (highlightedObj) highlightedObj.highlight();
         globals.threeView.render();
     }
@@ -80,10 +83,6 @@ $(function() {
     $(document).on("keyup", function (e) {
         if (e.keyCode == 16){
             shift = false;
-        } else if (e.keyCode == 13){
-            globals.linked.link();
-        } else if (e.keyCode == 27){
-            globals.linked.deselectAll();
         }
     });
 
@@ -97,6 +96,9 @@ $(function() {
         case 1://left button
             mouseDown = true;
             console.log(highlightedObj)
+            if (highlightedObj) {
+               $('#conicType').html(highlightedObj.conic.type); 
+            }
             break;
         case 2://middle button
             break;
@@ -150,7 +152,16 @@ $(function() {
                 var data = "Position: " +
                             "&nbsp;&nbsp;  x : " + intersection.x.toFixed(2) + "&nbsp;  y : " + intersection.y.toFixed(2);
 
-                
+                globals.controls.setInput("#focusX", globals.selectedObject.conic.focus.x, function(val){
+                    globals.selectedObject.conic.focus.x = val;
+                    console.log('here')
+                    globals.selectedObject.conic.moveCurve();
+                });
+                globals.controls.setInput("#focusY", globals.selectedObject.conic.focus.y, function(val){
+                    globals.selectedObject.conic.focus.y = val;
+                    globals.selectedObject.conic.moveCurve();
+                });
+
                 highlightedObj.moveManually(intersection);
                 globals.controls.viewModeCallback();
             }

@@ -37,13 +37,9 @@ function initControls(globals){
     setRadio("viewMode", globals.viewMode, viewModeChange);
     viewModeChange(globals.viewMode);
 
-    setInput("#gradStepSize", globals.gradStepSize, function(val){
-        globals.gradStepSize = val;
-    }, 0.0001);
-
-    setInput("#gradTolerance", globals.gradTolerance, function(val){
-        globals.gradTolerance = val;
-    }, 0);
+    // setInput("#focusX", globals.selectedObject.conic.focus.x, function(val){
+    //     globals.selectedObject.conic.focus.x = val;
+    // });
 
     setLink("#download", function(){
         var blob = new Blob([globals.getInfo()], {type: "text/plain;charset=utf-8"});
@@ -152,6 +148,7 @@ function initControls(globals){
 
     return {
         viewModeCallback: viewModeCallback,
-        setRadio: setRadio
+        setRadio: setRadio,
+        setInput: setInput
     }
 }

@@ -166,7 +166,7 @@ Conic.prototype.computeCurve = function() {
 	// construct curve:
 	this.curvePoints = [];
 	var x, y;
-	for (var t=this.extents[0]; t <= this.extents[1]; t+=2) {
+	for (var t=this.extents[0]; t <= this.extents[1]; t+=15) {
 
 		if (this.type == "ellipse") {
 			y = -this.a*Math.cos(t/100);
@@ -293,8 +293,9 @@ Conic.prototype.calculateInteriorBoundingLines = function() {
 				// this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec.clone().negate()));
 				this.interiorBorderPoints.push(this.focus);
 			} else {
-				this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
-		 				this.curvePoints[i].clone().sub(this.focus)));
+				// this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
+		 	// 			this.curvePoints[i].clone().sub(this.focus)));
+				this.interiorBorderPoints.push(this.focus);
 			}
 		}
 	}
@@ -319,8 +320,9 @@ Conic.prototype.calculateExteriorBoundingLines = function() {
 			if (this.type == "parabola") {
 				this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec));
 			} else {
-				this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
-		 				this.curvePoints[i].clone().sub(this.secondaryFocus)));
+				// this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
+		 	// 			this.curvePoints[i].clone().sub(this.secondaryFocus)));
+				this.exteriorBorderPoints.push(this.secondaryFocus);
 			}
 		 }	
 	}
@@ -425,5 +427,6 @@ Conic.prototype.destroy = function(){
     	this.objectWrapper[i] = null;
     }
     this.objectWrapper = [];
+    globals.removeConic(this);
     globals.threeView.render();
 };

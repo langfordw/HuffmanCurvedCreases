@@ -22,9 +22,9 @@ function initGlobals(){
         symmetryAngle: 90,
         symmetryPoint: new THREE.Vector3(0,0,0),
 
-        lockForces: false,
-        lockTopology: false,
-        lockNodePositions: false,
+        showCreases: true,
+        showPolygons: true,
+        showWireframe: false,
 
         conic_resolution: 20, //
         rule_resolution: 20,

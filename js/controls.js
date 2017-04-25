@@ -66,6 +66,27 @@ function initControls(globals){
         saveAs(blob, "truss.txt");
     });
 
+    setCheckbox("#creases", true, function(val) {
+        globals.showCreases = val;
+        for (var i=0; i < globals.conics.length; i++) {
+            globals.conics[i].updateGeometry();
+        }
+    });
+
+    setCheckbox("#polygons", true, function(val) {
+        globals.showPolygons = val;
+        for (var i=0; i < globals.conics.length; i++) {
+            globals.conics[i].updateGeometry();
+        }
+    });
+
+    setCheckbox("#wireframe", false, function(val) {
+        globals.showWireframe = val;
+        for (var i=0; i < globals.conics.length; i++) {
+            globals.conics[i].updateGeometry();
+        }
+    });
+
 
     setRadio("conicType", undefined, function(val) {
         // globals.selectedObject.conic.type = val;
@@ -130,7 +151,6 @@ function initControls(globals){
     });
 
     setRadio("polarity", undefined, function(val) {
-        console.log(val)
         var old = globals.selectedObject.conic;
         var newConic = new Conic(old.type,old.focus,old.orientationVec,old.a,old.b,old.extents,val)
         globals.addConic(newConic);

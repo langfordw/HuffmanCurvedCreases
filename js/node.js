@@ -2,7 +2,7 @@
  * Created by ghassaei on 9/16/16.
  */
 
-var nodeMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
+var nodeMaterial = new THREE.MeshBasicMaterial({color: 0x333333});
 var nodeMaterialFixed = new THREE.MeshBasicMaterial({color: 0x000000});
 var nodeMaterialDelete = new THREE.MeshBasicMaterial({color: 0xff0000});
 var nodeMaterialHighlight = new THREE.MeshBasicMaterial({color: 0x00ffff});
@@ -84,7 +84,8 @@ Node.prototype.moveManually = function(position,shift=false){
             var dPos = position.clone().sub(this.conic.focus);
             if (Math.abs(dPos.x)/Math.abs(dPos.y) < 0.5) dPos.x = 0;
             else if (Math.abs(dPos.y)/Math.abs(dPos.x) < 0.5) dPos.y = 0;
-            this.object3D.position.set(dPos.x,dPos.y,0);
+            var newPos = dPos.add(this.conic.focus);
+            this.object3D.position.set(newPos.x,newPos.y,0);
         } else {
             this.object3D.position.set(position.x, position.y, 0);
         }

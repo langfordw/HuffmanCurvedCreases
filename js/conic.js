@@ -5,8 +5,6 @@
 // - add handles for B
 // - compute correct polygons for ellipse and hyperbola
 // - add export to SVG / Zund
-// - fix extents handles
-
 
 var lineMat = new THREE.LineBasicMaterial({color: 0x000077});
 var curveMat = new THREE.LineBasicMaterial({color: 0xff0000});
@@ -155,8 +153,6 @@ function Conic(type,focus,orientation,a,b,extents,polarity) {
     this.endNode = new Node(this.curvePoints[this.curvePoints.length-1],globals,"end", this)
     this.objectWrapper.push(this.endNode.object3D);
 
-
-
    	// Update Geometry
     this.updateGeometry();
 }
@@ -231,7 +227,9 @@ Conic.prototype.updateGeometry = function() {
 }
 
 Conic.prototype.moveCurve = function(position) {
-	this.focus = this.focusNode.getPosition().clone();
+	this.focus = this.focusNode.getPosition();
+	// this.secondaryFocus = this.focusNode.getPosition().add(this.secondaryFocusVec);
+	if (this.type != "parabola") this.secondaryFocus = this.secondaryFocusNode.getPosition();
 	this.updateGeometry();
 }
 
@@ -279,210 +277,96 @@ Conic.prototype.moveExtents = function(type,position) {
 Conic.prototype.calculateInteriorBoundingLines = function() {
 	this.interiorBorderPoints = [];
 
-	globals.threeView.sceneRemove(this.boundingLines[0])
-	globals.threeView.sceneRemove(this.boundingLines[1])
-
-	if (this.polarity) {
-		var end_intersect = getBoundaryIntersection(this.focus,this.endNode.getPosition().sub(this.focus))
-		
-		// var lineGeo = new THREE.Geometry();
-		// lineGeo.vertices = [this.end_node.getPosition(),end_intersect];
-		// this.boundingLines[0] = new THREE.Line(lineGeo, lineMat);
-		// globals.threeView.sceneAdd(this.boundingLines[0]);
-
-		var start_intersect = getBoundaryIntersection(this.focus,this.startNode.getPosition().sub(this.focus))
-		
-		// lineGeo = new THREE.Geometry();
-		// lineGeo.vertices = [this.start_node.getPosition(),start_intersect];
-		// this.boundingLines[1] = new THREE.Line(lineGeo, lineMat);
-		// globals.threeView.sceneAdd(this.boundingLines[1]);
-
-		// checkCorners
-		bottomLeftCorner = new THREE.Vector3(globals.xmin,globals.ymin,0);
-		topLeftCorner = new THREE.Vector3(globals.xmin,globals.ymax,0);
-		bottomRightCorner = new THREE.Vector3(globals.xmax,globals.ymin,0);
-		topRightCorner = new THREE.Vector3(globals.xmax,globals.ymax,0);
-
-		var A = this.startNode.getPosition().sub(this.focus);
-		var B = this.startNode.getPosition().sub(this.focus);
-
-		this.interiorBorderPoints.push(end_intersect);
-
-		if (Math.abs(end_intersect.x - globals.xmin) < 1) {
-			if (vectorBetweenVectors(A,B,bottomLeftCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(bottomLeftCorner)
+	if (this.polarity == "converging") {
+		for (var i=0; i < this.curvePoints.length; i++) {
+			if (this.type == "parabola") {
+				this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec.clone().negate()));
+			} else {
+				this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
+		 				this.curvePoints[i].clone().sub(this.secondaryFocus)));
 			}
-			if (vectorBetweenVectors(A,B,bottomRightCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(bottomRightCorner)
-			}
-			if (vectorBetweenVectors(A,B,topRightCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(topRightCorner)
-			}
-			if (vectorBetweenVectors(A,B,topLeftCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(topLeftCorner)
-			}
-		} else if (Math.abs(end_intersect.y - globals.ymin) < 1) {
-			if (vectorBetweenVectors(A,B,bottomRightCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(bottomRightCorner)
-			}
-			if (vectorBetweenVectors(A,B,topRightCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(topRightCorner)
-			}
-			if (vectorBetweenVectors(A,B,topLeftCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(topLeftCorner)
-			}
-			if (vectorBetweenVectors(A,B,bottomLeftCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(bottomLeftCorner)
-			}
-		} else if (Math.abs(end_intersect.x - globals.xmax) < 1) {
-			if (vectorBetweenVectors(A,B,topRightCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(topRightCorner)
-			}
-			if (vectorBetweenVectors(A,B,topLeftCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(topLeftCorner)
-			}
-			if (vectorBetweenVectors(A,B,bottomLeftCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(bottomLeftCorner)
-			}
-			if (vectorBetweenVectors(A,B,bottomRightCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(bottomRightCorner)
-			}
-		} else if (Math.abs(end_intersect.y - globals.ymax) < 1){
-			if (vectorBetweenVectors(A,B,topLeftCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(topLeftCorner)
-			}
-			if (vectorBetweenVectors(A,B,bottomLeftCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(bottomLeftCorner)
-			}
-			if (vectorBetweenVectors(A,B,bottomRightCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(bottomRightCorner)
-			}
-			if (vectorBetweenVectors(A,B,topRightCorner.clone().sub(this.focus))) {
-				this.interiorBorderPoints.push(topRightCorner)
-			}
+		 	
 		}
-
-		this.interiorBorderPoints.push(start_intersect);
 	} else {
 		for (var i=0; i < this.curvePoints.length; i++) {
-		 	this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
+			if (this.type == "parabola") {
+				// this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec.clone().negate()));
+				this.interiorBorderPoints.push(this.focus);
+			} else {
+				this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
 		 				this.curvePoints[i].clone().sub(this.focus)));
+			}
 		}
 	}
 }
 
-
 Conic.prototype.calculateExteriorBoundingLines = function() {
 	this.exteriorBorderPoints = [];
 
-	if (this.polarity) {
+	if (this.polarity == "converging") {
 		for (var i=0; i < this.curvePoints.length; i++) {
-			// var intersects = getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]).negate(),this.curve);
-			// if (intersects != null) {
-			// 	this.exteriorBorderPoints.push(intersects[0])
-			// } else {
-			// 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec));
-			// }
-			// console.log(this.exteriorBorderPoints)
-		 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec));
-		 	// console.log(getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]).negate(),this.curve))
-
+			if (this.type == "parabola") {
+				this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
+		 				this.curvePoints[i].clone().sub(this.focus)));
+			} else {
+				this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
+		 				this.curvePoints[i].clone().sub(this.focus)));
+			}
+		 	
 		}
 	} else {
 		for (var i=0; i < this.curvePoints.length; i++) {
-			// var intersects = getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]).negate(),this.curve);
-			// if (intersects != null) {
-			// 	this.exteriorBorderPoints.push(intersects[0])
-			// } else {
-			// 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.aVec.clone().negate()));
-			// }
-			// this.exteriorBorderPoints.push(getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]),this.curve))
-		 	this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec.clone().negate()));
-		 	// console.log(getCurveIntersection(this.curvePoints[i],this.focus.clone().sub(this.curvePoints[i]),this.curve))
-		}
+			if (this.type == "parabola") {
+				this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec));
+			} else {
+				this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
+		 				this.curvePoints[i].clone().sub(this.secondaryFocus)));
+			}
+		 }	
 	}
 }
 
 Conic.prototype.createInteriorPolygon = function() {
 	this.removeObject(this.polygon);
 	this.removeObject(this.polyFrame);
-	this.removeObject(this.interiorPolygonBoundary);
 
 	var polyGeom = new THREE.Geometry();
 
-	if (this.polarity) {
-		polyGeom.vertices.push(this.focus);
-		for (var i=0; i < this.curvePoints.length; i++) {
-			polyGeom.vertices.push(this.curvePoints[i]);
-		}
-
-		for (var i=0; i < this.interiorBorderPoints.length; i++) {
-			polyGeom.vertices.push(this.interiorBorderPoints[i]);
-		}
-
-		for (var i=1; i < polyGeom.vertices.length; i++) {
-			polyGeom.faces.push(new THREE.Face3(0,i,i-1));
-		}
-
-		var polygonBoundaryGeom2 = new THREE.Geometry();
-		polygonBoundaryGeom2.vertices = [];
-		this.interiorPolygonBoundary = new THREE.Line(polygonBoundaryGeom2, boundaryMat);
-		
-		for (var i=0; i < this.curvePoints.length; i++) {
-			polygonBoundaryGeom2.vertices.push(this.curvePoints[i]);
-			this.interiorPolygonVertices.push([this.curvePoints[i].x,this.curvePoints[i].y]);
-		}
-		for (var i=0; i < this.interiorBorderPoints.length; i++) {
-			polygonBoundaryGeom2.vertices.push(this.interiorBorderPoints[i]);
-			this.interiorPolygonVertices.push([this.interiorBorderPoints[i].x,this.interiorBorderPoints[i].y]);
-		}
-		polygonBoundaryGeom2.vertices.push(this.curvePoints[0]);
-		this.interiorPolygonVertices.push([this.curvePoints[0].x,this.curvePoints[0].y]);
-
-	} else {
-		
-
-		for (var i=0; i < this.curvePoints.length; i++) {
-			polyGeom.vertices.push(this.curvePoints[i]);
-			polyGeom.vertices.push(this.interiorBorderPoints[i]);
-		}
-
-		for (var i=2; i < polyGeom.vertices.length; i++) {
-			polyGeom.faces.push(new THREE.Face3(i,i-1,i-2));
-		}
-
-
-		var polygonBoundaryGeom2 = new THREE.Geometry();
-		polygonBoundaryGeom2.vertices = [];
-		this.interiorPolygonBoundary = new THREE.Line(polygonBoundaryGeom2, boundaryMat);
-		
-		for (var i=0; i < this.curvePoints.length; i++) {
-			polygonBoundaryGeom2.vertices.push(this.curvePoints[i]);
-			this.interiorPolygonVertices.push([this.curvePoints[i].x,this.curvePoints[i].y]);
-		}
-		for (var i=this.interiorBorderPoints.length-1; i >= 0; i--) {
-			polygonBoundaryGeom2.vertices.push(this.interiorBorderPoints[i]);
-			this.interiorPolygonVertices.push([this.interiorBorderPoints[i].x,this.interiorBorderPoints[i].y]);
-		}
-		polygonBoundaryGeom2.vertices.push(this.curvePoints[0]);
-		this.interiorPolygonVertices.push([this.curvePoints[0].x,this.curvePoints[0].y]);
-
+	for (var i=0; i < this.curvePoints.length; i++) {
+		polyGeom.vertices.push(this.curvePoints[i]);
+		polyGeom.vertices.push(this.interiorBorderPoints[i]);
 	}
+
+	for (var i=2; i < polyGeom.vertices.length; i++) {
+		polyGeom.faces.push(new THREE.Face3(i,i-1,i-2));
+	}
+
+	var polygonBoundaryGeom2 = new THREE.Geometry();
+	polygonBoundaryGeom2.vertices = [];
+	this.interiorPolygonBoundary = new THREE.Line(polygonBoundaryGeom2, boundaryMat);
+	
+	for (var i=0; i < this.curvePoints.length; i++) {
+		polygonBoundaryGeom2.vertices.push(this.curvePoints[i]);
+		this.interiorPolygonVertices.push([this.curvePoints[i].x,this.curvePoints[i].y]);
+	}
+	for (var i=this.interiorBorderPoints.length-1; i >= 0; i--) {
+		polygonBoundaryGeom2.vertices.push(this.interiorBorderPoints[i]);
+		this.interiorPolygonVertices.push([this.interiorBorderPoints[i].x,this.interiorBorderPoints[i].y]);
+	}
+	polygonBoundaryGeom2.vertices.push(this.curvePoints[0]);
+	this.interiorPolygonVertices.push([this.curvePoints[0].x,this.curvePoints[0].y]);
 
 
 	this.polygon = new THREE.Mesh(polyGeom,polyMat);
 	this.polyFrame = new THREE.Mesh(polyGeom,polyMatWire);
 	
-	// globals.threeView.sceneAdd(this.interiorPolygonBoundary);
-	// globals.threeView.sceneAdd(this.polygon);
-	this.addObject(this.polygon);
-	// globals.threeView.sceneAdd(this.polyFrame);
+	if (globals.showPolygons) this.addObject(this.polygon);
+	if (globals.showWireframe) this.addObject(this.polyFrame);
 }
 
 Conic.prototype.createExteriorPolygon = function() {
 	this.removeObject(this.polygon2);
 	this.removeObject(this.polyFrame2);
-	this.removeObject(this.exteriorPolygonBoundary);
 
 	var polyGeom = new THREE.Geometry();
 
@@ -514,10 +398,8 @@ Conic.prototype.createExteriorPolygon = function() {
 	this.polygon2 = new THREE.Mesh(polyGeom,polyMat2);
 	this.polyFrame2 = new THREE.Mesh(polyGeom,polyMatWire);
 	
-	// globals.threeView.sceneAdd(this.exteriorPolygonBoundary);
-	// globals.threeView.sceneAdd(this.polygon2);
-	this.addObject(this.polygon2);
-	// globals.threeView.sceneAdd(this.polyFrame2);
+	if (globals.showPolygons) this.addObject(this.polygon2);
+	if (globals.showWireframe) this.addObject(this.polyFrame2);
 }
 
 Conic.prototype.addObject = function(object){

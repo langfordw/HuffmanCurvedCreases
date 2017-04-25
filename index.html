@@ -47,9 +47,7 @@
             </label>
         </div>
     </div><br/>
-    <!-- <div id="conicNameContainer"> &nbsp; Conic Type: &nbsp; 
-        <span id="conicType">Undefined</span>
-    </div><br/> -->
+
     <div class="floatRight">Focus (X,Y): &nbsp;&nbsp;
         <input id="focusX" value="" placeholder="x" class="form-control" type="text">
         <input id="focusY" value="" placeholder="y" class="form-control" type="text">
@@ -70,11 +68,11 @@
         Polarity:
         <div class="indent">
             <label class="radio">
-                <input name="polarity" value="0" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                <input name="polarity" value="converging" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
                 Converging
             </label>
             <label class="radio">
-                <input name="polarity" value="1" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                <input name="polarity" value="diverging" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
                 Diverging
             </label>
         </div>
@@ -105,22 +103,18 @@
     <div>
         View Mode:
         <div class="indent">
-            <label class="radio">
-                <input name="viewMode" value="geometry" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+            <label class="checkbox" for="creases">
+                <input id="creases" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
                 Crease Lines
             </label>
-            <label class="radio">
-                <input name="viewMode" value="length" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
-                Rulings
+            <label class="checkbox" for="polygons">
+                <input id="polygons" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Shaded Polygons
             </label>
-            <label class="radio">
-                <input name="viewMode" value="force" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
-                    Polygons
+            <label class="checkbox" for="wireframe">
+                <input id="wireframe" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Wireframe Polygons
             </label>
-            <!--<label class="radio">-->
-                <!--<input name="viewMode" value="deformation" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>-->
-                    <!--Deformation (m)-->
-            <!--</label>-->
         </div>
     </div><br/>
     <!-- <a href="#" id="download" class="btn btn-lg btn-default">Make it!</a> -->

@@ -170,7 +170,7 @@ $(function() {
 
                 globals.controls.updateControls();
 
-                highlightedObj.moveManually(intersection);
+                highlightedObj.moveManually(intersection,shift);
                 globals.controls.viewModeCallback();
             }
         }

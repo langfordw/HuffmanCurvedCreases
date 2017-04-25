@@ -74,12 +74,20 @@ Node.prototype.show = function(){
     this.object3D.visible = true;
 };
 
-Node.prototype.moveManually = function(position){
+Node.prototype.moveManually = function(position,shift=false){
     if (this.controlType == "focus") {
         this.object3D.position.set(position.x, position.y, 0);
         this.conic.moveCurve(position);
     } else if (this.controlType == "vertex") {
-        this.object3D.position.set(position.x, position.y, 0);
+        if (shift) {
+            // snap to coordinate axes
+            var dPos = position.clone().sub(this.conic.focus);
+            if (Math.abs(dPos.x)/Math.abs(dPos.y) < 0.5) dPos.x = 0;
+            else if (Math.abs(dPos.y)/Math.abs(dPos.x) < 0.5) dPos.y = 0;
+            this.object3D.position.set(dPos.x,dPos.y,0);
+        } else {
+            this.object3D.position.set(position.x, position.y, 0);
+        }
         this.conic.moveVertex();
     } else if (this.controlType == "start") {
         this.conic.moveExtents("start",position);

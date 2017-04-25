@@ -5,6 +5,7 @@
 // - add handles for B
 // - compute correct polygons for ellipse and hyperbola
 // - add export to SVG / Zund
+// - fix extents handles
 
 
 var lineMat = new THREE.LineBasicMaterial({color: 0x000077});
@@ -164,31 +165,23 @@ Conic.prototype.computeCurve = function() {
 	this.removeObject(this.curve);
 
 	var angle = getAngle(this.orientationVec);
-
-	// TO DO: figure out why this is necessary...
-	if (this.type == "ellipse") {
-		angle += Math.PI/2;
-	} else if (this.type == "hyperbola") {
-		angle -= Math.PI/2;
-	} else if (this.type == "parabola") {
-		angle += Math.PI;
-	}
+	angle += Math.PI
 
 	// construct curve:
 	this.curvePoints = [];
 	var x, y;
-	for (var t=this.extents[0]; t <= this.extents[1]; t+=10) {
+	for (var t=this.extents[0]; t <= this.extents[1]; t+=2) {
 
 		if (this.type == "ellipse") {
-			x = this.a*Math.cos(t/100);
-			y = this.b*Math.sin(t/100);
+			y = -this.a*Math.cos(t/100);
+			x = this.b*Math.sin(t/100);
 
 			this.curvePoints.push(new THREE.Vector3(x*Math.cos(angle) - y*Math.sin(angle),
 										   		x*Math.sin(angle) + y*Math.cos(angle),
 										   		0).sub(this.orientationVec.clone().multiplyScalar(this.c)).add(this.focus));
 		} else if (this.type == "hyperbola") {
-			x = this.a/Math.cos(t/100);
-			y = this.b*Math.tan(t/100);
+			y = this.a/Math.cos(t/100);
+			x = this.b*Math.tan(t/100);
 
 			this.curvePoints.push(new THREE.Vector3(x*Math.cos(angle) - y*Math.sin(angle),
 										   		x*Math.sin(angle) + y*Math.cos(angle),
@@ -260,23 +253,26 @@ Conic.prototype.moveVertex = function() {
 }
 
 Conic.prototype.moveExtents = function(type,position) {
-	var xaxis = this.focusVertexVec.clone().applyAxisAngle(new THREE.Vector3(0,0,1),-Math.PI/2).divideScalar(this.focusVertexVec.length());
+	if (this.type == "parabola") var center = this.focus;
+	else var center = this.centerPoint;
+
+	var mousePos = position.clone().sub(center);
+
+	var initPos, tangent;
 	if (type == "start") {
-		this.extents[0] = position.sub(this.focus).dot(xaxis);
-		if (this.type == "hyperbola") {
-			if (this.extents[0] < -156) {
-				this.extents[0] = -156;
-			}
-		}
+		initPos = this.startNode.getPosition().sub(center);
+		tangent = this.curvePoints[0].clone().sub(this.curvePoints[1]);
+	} else {
+		initPos = this.endNode.getPosition().sub(center);
+		tangent = this.curvePoints[this.curvePoints.length-1].clone().sub(this.curvePoints[this.curvePoints.length-2]);
 	}
-	else if (type == "end") {
-		this.extents[1] = position.sub(this.focus).dot(xaxis);
-		if (this.type == "hyperbola") {
-			if (this.extents[1] > 156) {
-				this.extents[1] = 156;
-			}
-		}
-	}
+	var dPos = mousePos.clone().sub(initPos);
+	var dPosDotTangent = dPos.clone().dot(tangent)/100;
+
+
+	if (type == "start") this.extents[0] -= dPosDotTangent;
+	else this.extents[1] += dPosDotTangent;
+
 	this.updateGeometry();
 }
 

@@ -103,6 +103,7 @@ $(function() {
             if (highlightedObj) {
                console.log(highlightedObj)
             }
+            globals.mouseDownPos = new THREE.Vector3((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,0);
             break;
         case 2://middle button
             break;

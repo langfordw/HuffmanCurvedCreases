@@ -15,6 +15,19 @@ var polyMatWire = new THREE.MeshBasicMaterial({color: 0x444444, side: THREE.Doub
 
 var intersections = [];
 var counter = 0;
+var boundingBoxes = [];
+var boundingBoxes2 = [];
+
+var firstHalf = _.range(26).map(function(val) {
+	return val/50;
+});
+
+
+var secondHalf = _.range(26).map(function(val) {
+	return .5+val/50;
+});
+
+
 
 function getAngle(vec1) {
 	return Math.atan2(vec1.y,vec1.x)+Math.PI/2;
@@ -45,10 +58,13 @@ function getBoundaryIntersection(fromPoint,alongVector) {
  	return ray.intersectBox(box);
 }
 
-function findIntersections(curve1,curve2) {
+function findIntersections(linePoints1,linePoints2) {
 
-	var bounds1 = getBoundingBox(curve1);
-	var bounds2 = getBoundingBox(curve2);
+	var curve1 = new THREE.SplineCurve(linePoints1);
+	var curve2 = new THREE.SplineCurve(linePoints2);
+
+	var bounds1 = getBoundingBox(curve1.points);
+	var bounds2 = getBoundingBox(curve2.points);
 
 	console.log(bounds1)
 	console.log(bounds2)
@@ -71,12 +87,14 @@ function findIntersections(curve1,curve2) {
 								 new THREE.Vector3(bounds2.minx, bounds2.miny, 0)];
 								
 	var boundingBox2 = new THREE.Line(boundingBoxGeom2, boundaryMat);
+	boundingBoxes.push(boundingBox);
+	boundingBoxes2.push(boundingBox2);
 	globals.threeView.sceneAdd(boundingBox2);
 	globals.threeView.render();
 	
 	counter = counter + 1;
 	console.log("Count = " + counter);
-	if (counter > 3) {
+	if (counter > 3000) {
 		console.log("iterations exceded")
 		return;
 	}
@@ -86,26 +104,38 @@ function findIntersections(curve1,curve2) {
 		// var s2 = curve1;
 		// var s3 = curve2.splice(0,Math.floor(curve2.length/2));
 		// var s4 = curve2;
-		var s1 = curve1.slice(0,Math.floor(curve1.length/2));
-		var s2 = curve1.slice(Math.floor(curve1.length/2)-1,curve1.length);
-		var s3 = curve2.slice(0,Math.floor(curve2.length/2));
-		var s4 = curve2.slice(Math.floor(curve2.length/2)-1,curve2.length);
+		// var midpoint1 = curve1.getSpacedPoints(2)[1];
+		// var midpoint2 = curve2.getSpacedPoints(2)[1];
+		// var s1 = curve1.slice(0,Math.floor(curve1.length/2));
+		// var s2 = curve1.slice(Math.floor(curve1.length/2)-1,curve1.length);
+		// var s3 = curve2.slice(0,Math.floor(curve2.length/2));
+		// var s4 = curve2.slice(Math.floor(curve2.length/2)-1,curve2.length);
+		var s1 = _.range(26).map(function(i){ return curve1.getPointAt(firstHalf[i]) });
+		var s2 = _.range(26).map(function(i){ return curve1.getPointAt(secondHalf[i]) });
+		var s3 = _.range(26).map(function(i){ return curve2.getPointAt(firstHalf[i]) });
+		var s4 = _.range(26).map(function(i){ return curve2.getPointAt(secondHalf[i]) });
 		console.log("iterating");
 		console.log(s1)
 		console.log(s2)
-		intersections.push(findIntersections(s1,s3));
-		intersections.push(findIntersections(s1,s4));
-		intersections.push(findIntersections(s2,s3));
-		intersections.push(findIntersections(s2,s4));
+		console.log(s3)
+		console.log(s4)
+		intersections.concat(findIntersections(s1,s3));
+		intersections.concat(findIntersections(s1,s4));
+		intersections.concat(findIntersections(s2,s3));
+		intersections.concat(findIntersections(s2,s4));
 		return intersections;
 	} else if (bounds1.spanx == 2 && bounds1.spany == 2 && bounds2.spanx == 2 && bounds2.spany == 2) {
 		console.log('found intersection')
 		console.log(bounds1);
 		console.log(bounds2);
-		return [bounds1.minx, bounds1.maxx];
+		return [bounds1.minx];
+	} else if (checkOverlap(bounds1, bounds2)) {
+		console.log("still overlapping");
 	} else {
 		console.log("no points of intersection");
-		return null;
+		globals.threeView.sceneRemove(boundingBoxes.pop());
+	globals.threeView.sceneRemove(boundingBoxes2.pop());
+		return [];
 	}
 }
 
@@ -139,8 +169,6 @@ function getBoundingBox(points,draw=false) {
 			maxy = points[i].y;
 		}
 	}
-
-	console.log(maxy)
 
 	if (draw) {
 		var boundingBoxGeom = new THREE.Geometry();
@@ -179,20 +207,30 @@ function getCurveIntersection(fromPoint,alongVector,exceptCurve) {
 	// }
 	// return null
 
-	var creaseLine = new THREE.PlaneGeometry(400,20,1,1);
-    var plane = new THREE.Mesh(creaseLine, boundaryMat);
-    // plane.rotateX(Math.PI/2);
-    // plane.translateZ(-10);
-    // globals.threeView.sceneAdd(plane);
+	console.log(globals.threeView.wrapper.children);
+	console.log(_.filter(globals.threeView.wrapper.children,function(val) {
+		return (val != exceptCurve.curve) && (val != exceptCurve.focusNode)  && (val != exceptCurve.vertexNode)
+	}))
+	var raycast = new THREE.Raycaster(fromPoint,alongVector);
+	var intersects = raycast.intersectObject(globals.threeView.wrapper,true);
+	console.log(intersects)
+	_.each(intersects, function(intersect){
+		new Node(intersect.point, globals)
+	})
+	// var creaseLine = new THREE.PlaneGeometry(400,20,1,1);
+ //    var plane = new THREE.Mesh(creaseLine, boundaryMat);
+ //    // plane.rotateX(Math.PI/2);
+ //    // plane.translateZ(-10);
+ //    // globals.threeView.sceneAdd(plane);
 
-    var box = new THREE.Box3(new THREE.Vector3(-200,-100,0),
-                             new THREE.Vector3(200,-100,0));
+ //    var box = new THREE.Box3(new THREE.Vector3(-200,-100,0),
+ //                             new THREE.Vector3(200,-100,0));
 
-	var ray = new THREE.Ray(fromPoint,alongVector);
-	// console.log(ray);
-	// console.log(plane)
- 	// return ray.intersectPlane(plane);
- 	return ray.intersectBox(box);
+	// var ray = new THREE.Ray(fromPoint,alongVector);
+	// // console.log(ray);
+	// // console.log(plane)
+ // 	// return ray.intersectPlane(plane);
+ // 	return ray.intersectBox(box);
 }
 
 function Conic(type,focus,orientation,a,b,extents,polarity) {
@@ -290,7 +328,7 @@ Conic.prototype.computeCurve = function() {
 	// construct curve:
 	this.curvePoints = [];
 	var x, y;
-	for (var t=this.extents[0]; t <= this.extents[1]; t+=2) {
+	for (var t=this.extents[0]; t <= this.extents[1]; t+=5) {
 
 		if (this.type == "ellipse") {
 			y = -this.a*Math.cos(t/100);

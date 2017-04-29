@@ -23,7 +23,24 @@ function initControls(globals){
     });
 
     setLink("#export", function(){
-        console.log('coming soon');
+        // console.log('coming soon');
+        // globals.getIntersection(globals.conics[0],globals.conics[1])
+
+        // console.log("counter = " +counter)
+        // output = outputs[counter];
+        // if (outputs[counter].stage == 1) {
+        //     outputs.push(findIntersections(output.s1,output.s3));
+        //     outputs.push(findIntersections(output.s1,output.s4));
+        //     outputs.push(findIntersections(output.s2,output.s3));
+        //     outputs.push(findIntersections(output.s2,output.s4));
+        // } else if (outputs[counter].stage == 0) {
+        //     console.log("no intersection here")
+        // } else {
+        //     console.log("intersection!")
+        // }
+
+        // counter=counter+1;
+        
     });
 
     setLink("#addConic", function(){
@@ -73,6 +90,32 @@ function initControls(globals){
         }
     });
 
+    setCheckbox("#nodes", true, function(val) {
+        globals.showNodes = val;
+
+        for (var i=0; i < globals.conics.length; i++) {
+            var conic = globals.conics[i];
+            if (val) {
+                conic.focusNode.show();
+                conic.vertexNode.show();
+                conic.endNode.show();
+                conic.startNode.show();
+                if (conic.type != "parabola") {
+                    conic.secondaryFocusNode.show();
+                }
+            } else {
+                conic.focusNode.hide();
+                conic.vertexNode.hide();
+                conic.endNode.hide();
+                conic.startNode.hide();
+                if (conic.type != "parabola") {
+                    conic.secondaryFocusNode.hide();
+                }
+            }
+            
+        }
+    });
+
     setCheckbox("#polygons", true, function(val) {
         globals.showPolygons = val;
         for (var i=0; i < globals.conics.length; i++) {
@@ -82,6 +125,14 @@ function initControls(globals){
 
     setCheckbox("#wireframe", false, function(val) {
         globals.showWireframe = val;
+        for (var i=0; i < globals.conics.length; i++) {
+            globals.conics[i].updateGeometry();
+        }
+    });
+
+    setRadio("showAllPolygons", "all", function(val) {
+        if (val == "all")
+        globals.showPolygons = false;
         for (var i=0; i < globals.conics.length; i++) {
             globals.conics[i].updateGeometry();
         }
@@ -101,12 +152,22 @@ function initControls(globals){
         var oldPosition = globals.selectedObject.conic.focusNode.getPosition();
         globals.selectedObject.conic.focusNode.move(new THREE.Vector3(val,oldPosition.y,oldPosition.z));
         globals.selectedObject.conic.moveCurve();
+        // var old = globals.selectedObject.conic;
+        // var newConic = new Conic(old.type,new THREE.Vector3(val,old.focus.y,old.focus.z),old.orientationVec,val,old.b,old.extents,old.polarity);
+        // globals.addConic(newConic);
+        // old.destroy();
+        // globals.selectedObject.conic = newConic;
     });
 
     setInput("#focusY", undefined, function(val) {
         var oldPosition = globals.selectedObject.conic.focusNode.getPosition();
         globals.selectedObject.conic.focusNode.move(new THREE.Vector3(oldPosition.x,val,oldPosition.z));
         globals.selectedObject.conic.moveCurve();
+        // var old = globals.selectedObject.conic;
+        // var newConic = new Conic(old.type,new THREE.Vector3(old.focus.x,val,old.focus.z),old.orientationVec,val,old.b,old.extents,old.polarity)
+        // globals.addConic(newConic);
+        // old.destroy();
+        // globals.selectedObject.conic = newConic;
     });
 
     setInput("#aDim", undefined, function(val) {

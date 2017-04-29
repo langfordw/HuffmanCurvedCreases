@@ -3,8 +3,8 @@
 // - fix intersection of curve with border
 // - fix ellipse A, B, (secondaryFocus not updating with those)
 // - add handles for B
-// - compute correct polygons for ellipse and hyperbola
 // - add export to SVG / Zund
+// - debug parabola --> hyperbola
 
 var lineMat = new THREE.LineBasicMaterial({color: 0x000077});
 var curveMat = new THREE.LineBasicMaterial({color: 0xff0000});
@@ -12,6 +12,9 @@ var boundaryMat = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 2});
 var polyMat = new THREE.MeshBasicMaterial({color: 0x005500, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: false});
 var polyMat2 = new THREE.MeshBasicMaterial({color: 0x000055, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: false});
 var polyMatWire = new THREE.MeshBasicMaterial({color: 0x444444, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: true});
+
+var intersections = [];
+var counter = 0;
 
 function getAngle(vec1) {
 	return Math.atan2(vec1.y,vec1.x)+Math.PI/2;
@@ -40,6 +43,127 @@ function getBoundaryIntersection(fromPoint,alongVector) {
 	var box = new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,0),
                                     new THREE.Vector3(globals.xmax,globals.ymax,0));
  	return ray.intersectBox(box);
+}
+
+function findIntersections(curve1,curve2) {
+
+	var bounds1 = getBoundingBox(curve1);
+	var bounds2 = getBoundingBox(curve2);
+
+	console.log(bounds1)
+	console.log(bounds2)
+
+	var boundingBoxGeom = new THREE.Geometry();
+	boundingBoxGeom.vertices = [new THREE.Vector3(bounds1.minx, bounds1.miny, 0),
+								new THREE.Vector3(bounds1.minx, bounds1.maxy, 0),
+								new THREE.Vector3(bounds1.maxx, bounds1.maxy, 0),
+								new THREE.Vector3(bounds1.maxx, bounds1.miny, 0),
+								new THREE.Vector3(bounds1.minx, bounds1.miny, 0)];
+
+	var boundingBox = new THREE.Line(boundingBoxGeom, boundaryMat);
+	globals.threeView.sceneAdd(boundingBox);
+
+	var boundingBoxGeom2 = new THREE.Geometry();
+	boundingBoxGeom2.vertices = [new THREE.Vector3(bounds2.minx, bounds2.miny, 0),
+								 new THREE.Vector3(bounds2.minx, bounds2.maxy, 0),
+								 new THREE.Vector3(bounds2.maxx, bounds2.maxy, 0),
+								 new THREE.Vector3(bounds2.maxx, bounds2.miny, 0),
+								 new THREE.Vector3(bounds2.minx, bounds2.miny, 0)];
+								
+	var boundingBox2 = new THREE.Line(boundingBoxGeom2, boundaryMat);
+	globals.threeView.sceneAdd(boundingBox2);
+	globals.threeView.render();
+	
+	counter = counter + 1;
+	console.log("Count = " + counter);
+	if (counter > 3) {
+		console.log("iterations exceded")
+		return;
+	}
+
+	if (checkOverlap(bounds1, bounds2) && bounds1.spanx > 2 && bounds1.spany > 2 && bounds2.spanx > 2 && bounds2.spany > 2) {
+		// var s1 = curve1.splice(0,Math.floor(curve1.length/2));
+		// var s2 = curve1;
+		// var s3 = curve2.splice(0,Math.floor(curve2.length/2));
+		// var s4 = curve2;
+		var s1 = curve1.slice(0,Math.floor(curve1.length/2));
+		var s2 = curve1.slice(Math.floor(curve1.length/2)-1,curve1.length);
+		var s3 = curve2.slice(0,Math.floor(curve2.length/2));
+		var s4 = curve2.slice(Math.floor(curve2.length/2)-1,curve2.length);
+		console.log("iterating");
+		console.log(s1)
+		console.log(s2)
+		intersections.push(findIntersections(s1,s3));
+		intersections.push(findIntersections(s1,s4));
+		intersections.push(findIntersections(s2,s3));
+		intersections.push(findIntersections(s2,s4));
+		return intersections;
+	} else if (bounds1.spanx == 2 && bounds1.spany == 2 && bounds2.spanx == 2 && bounds2.spany == 2) {
+		console.log('found intersection')
+		console.log(bounds1);
+		console.log(bounds2);
+		return [bounds1.minx, bounds1.maxx];
+	} else {
+		console.log("no points of intersection");
+		return null;
+	}
+}
+
+function checkOverlap(bounds1, bounds2) {
+	// check if they overlap
+	if (bounds1.maxx < bounds2.minx) return false;
+	if (bounds1.minx > bounds2.maxx) return false;
+	if (bounds1.maxy < bounds2.miny) return false;
+	if (bounds1.miny > bounds2.maxy) return false;
+	return true;
+}
+
+function getBoundingBox(points,draw=false) {
+	var minx, maxx, miny, maxy;
+
+	minx = globals.width;
+	miny = globals.height;
+	maxx = -globals.width;
+	maxy = -globals.height;
+	for (var i=0; i < points.length; i++) {
+		if (points[i].x < minx) {
+			minx = points[i].x;
+		}
+		if (points[i].x > maxx) {
+			maxx = points[i].x;
+		}
+		if (points[i].y < miny) {
+			miny = points[i].y;
+		}
+		if (points[i].y > maxy) {
+			maxy = points[i].y;
+		}
+	}
+
+	console.log(maxy)
+
+	if (draw) {
+		var boundingBoxGeom = new THREE.Geometry();
+		boundingBoxGeom.vertices = [new THREE.Vector3(minx, miny, 0),
+									new THREE.Vector3(minx, maxy, 0),
+									new THREE.Vector3(maxx, maxy, 0),
+									new THREE.Vector3(maxx, miny, 0),
+									new THREE.Vector3(minx, miny, 0)];
+
+		var boundingBox = new THREE.Line(boundingBoxGeom, boundaryMat);
+		globals.threeView.sceneAdd(boundingBox);
+		globals.threeView.render();
+	}
+
+	var bounds = {
+		minx: minx,
+		maxx: maxx,
+		miny: miny,
+		maxy: maxy,
+		spanx: Math.abs(maxx-minx),
+		spany: Math.abs(maxy-miny)
+	}
+	return bounds;
 }
 
 function getCurveIntersection(fromPoint,alongVector,exceptCurve) {
@@ -166,7 +290,7 @@ Conic.prototype.computeCurve = function() {
 	// construct curve:
 	this.curvePoints = [];
 	var x, y;
-	for (var t=this.extents[0]; t <= this.extents[1]; t+=15) {
+	for (var t=this.extents[0]; t <= this.extents[1]; t+=2) {
 
 		if (this.type == "ellipse") {
 			y = -this.a*Math.cos(t/100);
@@ -189,9 +313,7 @@ Conic.prototype.computeCurve = function() {
 			this.curvePoints.push(new THREE.Vector3(x*Math.cos(angle) - y*Math.sin(angle),
 										   		x*Math.sin(angle) + y*Math.cos(angle),
 										   		0).add(this.focus));
-		}
-
-		
+		}	
     }
 
     var curveGeo = new THREE.Geometry();
@@ -290,11 +412,8 @@ Conic.prototype.calculateInteriorBoundingLines = function() {
 	} else {
 		for (var i=0; i < this.curvePoints.length; i++) {
 			if (this.type == "parabola") {
-				// this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec.clone().negate()));
 				this.interiorBorderPoints.push(this.focus);
 			} else {
-				// this.interiorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
-		 	// 			this.curvePoints[i].clone().sub(this.focus)));
 				this.interiorBorderPoints.push(this.focus);
 			}
 		}
@@ -320,8 +439,6 @@ Conic.prototype.calculateExteriorBoundingLines = function() {
 			if (this.type == "parabola") {
 				this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], this.focusVertexVec));
 			} else {
-				// this.exteriorBorderPoints.push(getBoundaryIntersection(this.curvePoints[i], 
-		 	// 			this.curvePoints[i].clone().sub(this.secondaryFocus)));
 				this.exteriorBorderPoints.push(this.secondaryFocus);
 			}
 		 }	

@@ -76,6 +76,20 @@ Node.prototype.show = function(){
 
 Node.prototype.moveManually = function(position,shift=false){
     if (this.controlType == "focus") {
+        // determine if there is another focal point close enough to snap to:
+        // (snapping happens in main.js/mouseup routine)
+        globals.snapToIndex = null;
+        for (var i=0; i < globals.conics.length; i++) {
+            var focusVect = position.clone().sub(globals.conics[i].focus);
+            if (focusVect.length() < 15) {
+                if (globals.conics[i] != this.conic) {
+                    globals.snapToIndex = i;
+                    // globals.conics[i].focusNode.highlight();
+                }
+            } else {
+                // globals.conics[i].focusNode.unhighlight();
+            }
+        }
         this.object3D.position.set(position.x, position.y, 0);
         this.conic.moveCurve(position);
     } else if (this.controlType == "vertex") {

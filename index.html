@@ -15,7 +15,7 @@
     <script type="text/javascript" src="dependencies/three.js"></script>
     <script type="text/javascript" src="dependencies/OrbitControls.js"></script>
     <script type="text/javascript" src="dependencies/underscore-min.js"></script>
-    <!-- // <script type="text/javascript" src="dependencies/csg2d.js"></script> -->
+    <script type="text/javascript" src="dependencies/csg2d.js"></script>
 
     <script type="text/javascript" src="js/node.js"></script>
     <script type="text/javascript" src="js/conic.js"></script>
@@ -107,6 +107,10 @@
                 <input id="creases" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
                 Crease Lines
             </label>
+            <label class="checkbox" for="nodes">
+                <input id="nodes" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                Control Nodes
+            </label>
             <label class="checkbox" for="polygons">
                 <input id="polygons" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
                 Shaded Polygons
@@ -115,6 +119,16 @@
                 <input id="wireframe" data-toggle="checkbox" class="custom-checkbox layersSelector" type="checkbox"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
                 Wireframe Polygons
             </label>
+            <div class="indent2">
+                <label class="radio">
+                    <input name="showAllPolygons" value="all" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                    All Polygons
+                </label>
+                <label class="radio">
+                    <input name="showAllPolygons" value="selected" data-toggle="radio" class="custom-radio" type="radio"><span class="icons"><span class="icon-unchecked"></span><span class="icon-checked"></span></span>
+                    Only Selected
+                </label>
+            </div>
         </div>
     </div><br/>
     <!-- <a href="#" id="download" class="btn btn-lg btn-default">Make it!</a> -->

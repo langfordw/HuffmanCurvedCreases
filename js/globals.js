@@ -23,6 +23,7 @@ function initGlobals(){
         symmetryPoint: new THREE.Vector3(0,0,0),
 
         showCreases: true,
+        showNodes: true,
         showPolygons: true,
         showWireframe: false,
 
@@ -42,6 +43,8 @@ function initGlobals(){
                                     new THREE.Vector3(globals.xmax,globals.ymax,0)),
 
         selectedObject: {},
+        snapToIndex: null,
+
 
         nodes : [],
         addNode: addNode,
@@ -49,10 +52,12 @@ function initGlobals(){
         conics : [],
         addConic: addConic,
         removeConic: removeConic,
+        intersection: null,
         edges: [],
         addEdge: addEdge,
         removeEdge: removeEdge,
-        getInfo: getInfo
+        getInfo: getInfo,
+        getIntersection: getIntersection
     };
 
     function getInfo(){
@@ -87,6 +92,32 @@ function initGlobals(){
         var index = _globals.edges.indexOf(edge);
         if (index>=0) _globals.edges.splice(index, 1);
         edge.destroy();
+    }
+
+    function getIntersection(conic1, conic2) {
+        globals.threeView.sceneRemove(globals.intersection);
+        // var poly1 = CSG.fromPolygons([conic1.exteriorPolygonVertices]);
+        // var poly2 = CSG.fromPolygons([conic2.exteriorPolygonVertices]);
+        var poly1 = CSG.fromPolygons([conic1.interiorPolygonVertices]);
+        var poly2 = CSG.fromPolygons([conic2.interiorPolygonVertices]);
+
+        console.log(poly1);
+        console.log(poly2);
+
+        var intersection = poly1.intersect(poly2);
+        // console.log(intersection)
+
+        var result = new THREE.Geometry();
+
+        var intersectionVertices = intersection.toPolygons()[0];
+        // console.log(intersectionVertices)
+
+        for (var i=0; i < intersectionVertices.length; i++) {
+            result.vertices.push(new THREE.Vector3(intersectionVertices[i].x,intersectionVertices[i].y,0));
+        }
+
+        globals.intersection = new THREE.Line(result, boundaryMat);
+        globals.threeView.sceneAdd(globals.intersection);
     }
 
     _globals.threeView = initThreeView(_globals);

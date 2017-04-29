@@ -3,6 +3,7 @@
  */
 
 globals = {};
+var outputs = [];
 
 
 $(function() {
@@ -10,51 +11,11 @@ $(function() {
     globals = initGlobals();
 
     // globals.addConic( new Conic("parabola", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 0, [-120,120], "converging") );
-    globals.addConic( new Conic("hyperbola", new THREE.Vector3(100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], "converging") );
+    globals.addConic( new Conic("hyperbola", new THREE.Vector3(50,50,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "converging") );
+    globals.addConic( new Conic("parabola", new THREE.Vector3(-30,100,0), new THREE.Vector3(0,1,0), 40, 60, [-120,120], "converging") );
     // globals.addConic( new Conic("ellipse", new THREE.Vector3(-100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0) );
     
-    // var e = new Conic("ellipse", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0);
-    // var h = new Conic("hyperbola", new THREE.Vector3(100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0);
-
-
-    // getCurveIntersection(p.focus,p.aVec,plane)
-    // var p2 = new (new THREE.Vector3(0,50,0),new THREE.Vector3(0,-20,0),[-100,100],0);
-
-    // var poly1 = CSG.fromPolygons([p.exteriorPolygonVertices]);
-    // var poly2 = CSG.fromPolygons([p2.exteriorPolygonVertices]);
-
-    // // console.log(poly1);
-    // // console.log(poly2);
-
-    // var intersection = poly1.intersect(poly2);
-    // console.log(intersection)
-
-    // var result = new THREE.Geometry();
-
-    // var intersectionVertices = intersection.toPolygons();
-
-
-    // // for (var i=0; i < intersection.segments.length; i++) {
-    // //     result.vertices.push(new THREE.Vector3(intersection.segments[i].vertices[0].x,intersection.segments[i].vertices[0].y,0))
-    // // }
-
-    // // var intersectionVertices = intersection.toPolygons();
-    // // console.log(intersectionVertices)
-
-    // console.log(intersectionVertices)
-    
-    // for (var j=0; j < intersectionVertices.length; j++) {
-    //     // var j = 0;
-    //     for (var i=0; i < intersectionVertices[j].length; i++) {
-    //         // console.log(intersectionVertices[j][i])
-    //         result.vertices.push(new THREE.Vector3(intersectionVertices[j][i].x,intersectionVertices[j][i].y));
-    //     }
-    // }
-    // console.log(result.vertices)
-    
-    // var outline = new THREE.Line(result, boundaryMat);
-    // globals.threeView.sceneAdd(outline)
-
+    console.log(findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints));
     globals.threeView.render();
 
     var raycaster = new THREE.Raycaster();
@@ -99,6 +60,7 @@ $(function() {
         switch (e.which) {
         case 1://left button
             mouseDown = true;
+            globals.snapToIndex = null;
             globals.controls.updateControls();
             if (highlightedObj) {
                console.log(highlightedObj)
@@ -117,12 +79,16 @@ $(function() {
 
     document.addEventListener('mouseup', function(e){
         if (isDraggingNode){
+            // if there's another focus close enough to snap to, then snap:
+            if (globals.snapToIndex != null) {
+                var position = globals.conics[globals.snapToIndex].focus;
+                globals.selectedObject.object3D.position.set(position.x, position.y, 0);
+                globals.selectedObject.conic.moveCurve(position);
+            }
             isDraggingNode = false;
-            // globals.threeView.enableControls(true);
         }
         if (isDraggingForce){
             isDraggingForce = false;
-            // globals.threeView.enableControls(true);
         }
         isDragging = false;
         mouseDown = false;
@@ -171,7 +137,10 @@ $(function() {
                 globals.controls.updateControls();
 
                 highlightedObj.moveManually(intersection,shift);
+                console.log(checkOverlap(getBoundingBox(globals.conics[0].curvePoints),getBoundingBox(globals.conics[1].curvePoints)));
+                // findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints)
                 globals.controls.viewModeCallback();
+                
             }
         }
     }

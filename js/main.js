@@ -11,15 +11,16 @@ $(function() {
     globals = initGlobals();
 
     // globals.addConic( new Conic("parabola", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 0, [-120,120], "converging") );
-    globals.addConic( new Conic("hyperbola", new THREE.Vector3(50,100,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "converging") );
-    globals.addConic( new Conic("parabola", new THREE.Vector3(50,50,0), new THREE.Vector3(0,1,0), 40, 60, [-120,120], "converging") );
+    globals.addConic( new Conic("parabola", new THREE.Vector3(300,300,0), new THREE.Vector3(0,1,0), 40, 60, [-120,120], "converging") );
+    globals.addConic( new Conic("hyperbola", new THREE.Vector3(300,300,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "converging") );
     // globals.addConic( new Conic("ellipse", new THREE.Vector3(-100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0) );
     
-    getCurveIntersection(globals.conics[0].curvePoints[5],globals.conics[0].orientationVec,globals.conics[0])
-    // console.log(findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints));
+    // console.log(getNearestIntersection(globals.conics[0].curvePoints[0],globals.conics[0].focusVertexVec.clone().negate()));
+    console.log(findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints));
     // console.log(boundingBoxes);
     // console.log(boundingBoxes2);
     globals.threeView.render();
+    console.log(window.innerHeight*0.6/2.)
 
     var raycaster = new THREE.Raycaster();
     var mouse = new THREE.Vector2();
@@ -140,8 +141,9 @@ $(function() {
                 globals.controls.updateControls();
 
                 highlightedObj.moveManually(intersection,shift);
-                console.log(checkOverlap(getBoundingBox(globals.conics[0].curvePoints),getBoundingBox(globals.conics[1].curvePoints)));
+                // console.log(checkOverlap(getBoundingBox(globals.conics[0].curvePoints),getBoundingBox(globals.conics[1].curvePoints)));
                 // findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints)
+                // console.log(getNearestIntersection(globals.conics[0].curvePoints[0],globals.conics[0].focusVertexVec.clone().negate()))
                 globals.controls.viewModeCallback();
                 
             }

@@ -1,6 +1,7 @@
 /**
  * Created by ghassaei on 9/16/16.
  */
+var borderMat = new THREE.LineBasicMaterial({color: 0xf4f4f4});
 
 function initThreeView(globals) {
 
@@ -34,7 +35,21 @@ function initThreeView(globals) {
         var material = new THREE.MeshBasicMaterial( {color: 0xf4f4f4, side: THREE.DoubleSide} );
         var plane = new THREE.Mesh( geometry, material );
         plane.translateZ(-1);
+        plane.translateX(canvasWidth/2.);
+        plane.translateY(canvasHeight/2.);
         scene.add( plane );
+
+        var boxGeom = new THREE.Geometry();
+        boxGeom.vertices = [new THREE.Vector3(-canvasWidth/2., -canvasHeight/2., 0),
+                                     new THREE.Vector3(-canvasWidth/2., canvasHeight/2., 0),
+                                     new THREE.Vector3(canvasWidth/2., canvasHeight/2., 0),
+                                     new THREE.Vector3(canvasWidth/2., -canvasHeight/2., 0),
+                                     new THREE.Vector3(-canvasWidth/2., -canvasHeight/2., 0)];
+                                
+        var box = new THREE.Line(boxGeom, borderMat);
+        box.translateX(canvasWidth/2.);
+        box.translateY(canvasHeight/2.);
+        wrapper.add(box);
 
         // camera.zoom = 1;
         // camera.updateProjectionMatrix();
@@ -121,11 +136,11 @@ function initThreeView(globals) {
         return scene.children.concat(wrapper.children);
     }
 
-    function getCurvesToIntersect(exceptThis){
+    function getCurvesToIntersect(allCurves,exceptThis){
         var intersectCurves = [];
-        for (var i=0; i<wrapper.children.length; i++) {
+        for (var i=0; i<allCurves.length; i++) {
             // if (wrapper.children[i].type == "Line") {
-                if (wrapper.children[i] != exceptThis) {
+                if (allCurves.children[i] != exceptThis) {
                     intersectCurves.push(wrapper.children[i]);
                 }
             // }

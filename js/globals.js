@@ -32,10 +32,10 @@ function initGlobals(){
 
         width: window.innerWidth*0.6,
         height: window.innerHeight*0.6,
-        xmin: -window.innerWidth*0.6/2.0,
-        xmax: window.innerWidth*0.6/2.0,
-        ymin: -window.innerHeight*0.6/2.0,
-        ymax: window.innerHeight*0.6/2.0,
+        xmin: 0,
+        xmax: window.innerWidth*0.6,
+        ymin: 0,
+        ymax: window.innerHeight*0.6,
 
         mouseDownPos: null,
 

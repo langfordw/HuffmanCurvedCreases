@@ -15,12 +15,17 @@ $(function() {
     globals.addConic( new Conic("hyperbola", new THREE.Vector3(300,300,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "converging") );
     // globals.addConic( new Conic("ellipse", new THREE.Vector3(-100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0) );
     
-    // console.log(getNearestIntersection(globals.conics[0].curvePoints[0],globals.conics[0].focusVertexVec.clone().negate()));
-    console.log(findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints));
-    // console.log(boundingBoxes);
-    // console.log(boundingBoxes2);
+    intersections = [];
+    findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints);
+    console.log(intersections)
+    for (var i=0; i < intersections.length; i++) {
+        if (intersectionPoints[i] != undefined) { intersectionPoints[i].destroy(); }
+    }
+    for (var i=0; i < intersections.length; i++) {
+        intersectionPoints.push(new Node(new THREE.Vector3(intersections[i][0],intersections[i][1],0),globals));
+    }
+
     globals.threeView.render();
-    console.log(window.innerHeight*0.6/2.)
 
     var raycaster = new THREE.Raycaster();
     var mouse = new THREE.Vector2();
@@ -121,29 +126,21 @@ $(function() {
             if (highlightedObj.type == "node"){
                 if (!isDraggingNode) {
                     isDraggingNode = true;
-                    // globals.threeView.enableControls(false);
                 }
                 var intersection = getIntersectionWithObjectPlane(highlightedObj.getPosition());
-                var data = "Position: " +
-                            "&nbsp;&nbsp;  x : " + intersection.x.toFixed(2) + "&nbsp;  y : " + intersection.y.toFixed(2);
-
-                // globals.controls.setInput("#focusX", globals.selectedObject.conic.focus.x, function(val){
-                //     globals.selectedObject.conic.focus.x = val;
-                //     console.log(globals.selectedObject.conic.focus)
-                //     globals.selectedObject.conic.focusNode.move(val,globals.selectedObject.conic.focus.y,0);
-                //     globals.selectedObject.conic.moveCurve();
-                // });
-                // globals.controls.setInput("#focusY", globals.selectedObject.conic.focus.y, function(val){
-                //     globals.selectedObject.conic.focus.y = val;
-                //     globals.selectedObject.conic.moveCurve();
-                // });
-
                 globals.controls.updateControls();
 
                 highlightedObj.moveManually(intersection,shift);
-                // console.log(checkOverlap(getBoundingBox(globals.conics[0].curvePoints),getBoundingBox(globals.conics[1].curvePoints)));
-                // findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints)
-                // console.log(getNearestIntersection(globals.conics[0].curvePoints[0],globals.conics[0].focusVertexVec.clone().negate()))
+                counter=0;
+                intersections = [];
+                findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints);
+                console.log(intersections)
+                for (var i=0; i < intersectionPoints.length; i++) {
+                    if (intersectionPoints[i] != undefined) { intersectionPoints[i].destroy(); }
+                }
+                for (var i=0; i < intersections.length; i++) {
+                    intersectionPoints.push(new Node(new THREE.Vector3(intersections[i][0],intersections[i][1],0),globals));
+                }
                 globals.controls.viewModeCallback();
                 
             }

@@ -19,6 +19,7 @@ var boundingBoxes = [];
 var boundingBoxes2 = [];
 
 var intersectionPoint = undefined;
+var intersectionPoints = [];
 
 var firstHalf = _.range(26).map(function(val) {
 	return val/50;
@@ -77,6 +78,101 @@ function getNearestIntersection(fromPoint,alongVector,exceptThis) {
 	return null;
 }
 
+function computeLineLineIntersection(line1, line2) {
+	//lines are of the form [Vector3, Vector3], with each vector representing start and end points
+
+	var withinBounds1 = false;
+	var withinBounds2 = false;
+
+	var a1 = line1[1].y - line1[0].y;
+	var b1 = line1[0].x - line1[1].x;
+	var xm1 = (line1[0].x + line1[1].x)/2.;
+	var ym1 = (line1[0].y + line1[1].y)/2.;
+	var c1 = a1*xm1+b1*ym1;
+
+	var a2 = line2[1].y - line2[0].y;
+	var b2 = line2[0].x - line2[1].x;
+	var xm2 = (line2[0].x + line2[1].x)/2.;
+	var ym2 = (line2[0].y + line2[1].y)/2.;
+	var c2 = a2*xm2+b2*ym2;
+
+	var A = [[a1, b1],
+			 [a2, b2]];
+	var B = [c1,c2];
+	var point = numeric.solve(A,B);
+
+	// var m1 = a1/(-b1);
+	// var k1 = ym1 - xm1*m1;
+	// var m2 = a2/(-b2);
+	// var k2 = ym2 - xm2*m2;
+	// var x = (k2-k1)/(m1-m2);
+	// var y = m1*x+k1;
+
+	// var point = [x,y];
+
+	// console.log("x11 = " + line1[0].x)
+	// console.log("x12 = " + line1[1].x)
+	// console.log("y11 = " + line1[0].y)
+	// console.log("y12 = " + line1[1].y)
+	// console.log("x21 = " + line2[0].x)
+	// console.log("x22 = " + line2[1].x)
+	// console.log("y21 = " + line2[0].y)
+	// console.log("y22 = " + line2[1].y)
+	// console.log("a1 = " + a1)
+	// console.log("b1 = " + b1)
+	// console.log("a2 = " + a2)
+	// console.log("b2 = " + b2)
+	// console.log("intersect @ " + point)
+
+	// check if point between bounds:
+	if (point[0] >= line1[0].x && point[0] <= line1[1].x) {
+		if (point[1] >= line1[0].y && point[1] <= line1[1].y) {
+			withinBounds1 = true;
+		}
+	}
+	if (point[0] <= line1[0].x && point[0] >= line1[1].x) {
+		if (point[1] >= line1[0].y && point[1] <= line1[1].y) {
+			withinBounds1 = true;
+		}
+	}
+	if (point[0] >= line1[0].x && point[0] <= line1[1].x) {
+		if (point[1] <= line1[0].y && point[1] >= line1[1].y) {
+			withinBounds1 = true;
+		}
+	}
+	if (point[0] <= line1[0].x && point[0] >= line1[1].x) {
+		if (point[1] <= line1[0].y && point[1] >= line1[1].y) {
+			withinBounds1 = true;
+		}
+	}
+
+	if (point[0] >= line2[0].x && point[0] <= line2[1].x) {
+		if (point[1] >= line2[0].y && point[1] <= line2[1].y) {
+			withinBounds2 = true;
+		}
+	}
+	if (point[0] <= line2[0].x && point[0] >= line2[1].x) {
+		if (point[1] >= line2[0].y && point[1] <= line2[1].y) {
+			withinBounds2 = true;
+		}
+	}
+	if (point[0] >= line2[0].x && point[0] <= line2[1].x) {
+		if (point[1] <= line2[0].y && point[1] >= line2[1].y) {
+			withinBounds2 = true;
+		}
+	}
+	if (point[0] <= line2[0].x && point[0] >= line2[1].x) {
+		if (point[1] <= line2[0].y && point[1] >= line2[1].y) {
+			withinBounds2 = true;
+		}
+	}
+
+	return {
+		point:point,
+		withinBounds:withinBounds1&withinBounds2
+	}
+}
+
 function findIntersections(curve1,curve2) {
 
 	// var curve1 = new THREE.SplineCurve(linePoints1);
@@ -85,36 +181,13 @@ function findIntersections(curve1,curve2) {
 	var bounds1 = getBoundingBox(curve1);
 	var bounds2 = getBoundingBox(curve2);
 
-	console.log(bounds1)
-	console.log(bounds2)
-
-	var boundingBoxGeom = new THREE.Geometry();
-	boundingBoxGeom.vertices = [new THREE.Vector3(bounds1.minx, bounds1.miny, 0),
-								new THREE.Vector3(bounds1.minx, bounds1.maxy, 0),
-								new THREE.Vector3(bounds1.maxx, bounds1.maxy, 0),
-								new THREE.Vector3(bounds1.maxx, bounds1.miny, 0),
-								new THREE.Vector3(bounds1.minx, bounds1.miny, 0)];
-
-	var boundingBox = new THREE.Line(boundingBoxGeom, boundaryMat);
-	globals.threeView.sceneAdd(boundingBox);
-
-	var boundingBoxGeom2 = new THREE.Geometry();
-	boundingBoxGeom2.vertices = [new THREE.Vector3(bounds2.minx, bounds2.miny, 0),
-								 new THREE.Vector3(bounds2.minx, bounds2.maxy, 0),
-								 new THREE.Vector3(bounds2.maxx, bounds2.maxy, 0),
-								 new THREE.Vector3(bounds2.maxx, bounds2.miny, 0),
-								 new THREE.Vector3(bounds2.minx, bounds2.miny, 0)];
-								
-	var boundingBox2 = new THREE.Line(boundingBoxGeom2, boundaryMat);
-	boundingBoxes.push(boundingBox);
-	boundingBoxes2.push(boundingBox2);
-	globals.threeView.sceneAdd(boundingBox2);
-	globals.threeView.render();
+	// console.log(bounds1)
+	// console.log(bounds2)
 	
 	counter = counter + 1;
-	console.log("Count = " + counter);
-	if (counter > 50) {
-		console.log("iterations exceded")
+	// console.log("Count = " + counter);
+	if (counter > 500) {
+		console.log("warning: iterations exceded")
 		return;
 	}
 
@@ -134,41 +207,51 @@ function findIntersections(curve1,curve2) {
 		// var s3 = _.range(26).map(function(i){ return curve2.getPointAt(firstHalf[i]) });
 		// var s4 = _.range(26).map(function(i){ return curve2.getPointAt(secondHalf[i]) });
 		console.log("iterating");
-		console.log(s1.length)
-		console.log(s2.length)
-		console.log(s3.length)
-		console.log(s4.length)
-		intersections.concat(findIntersections(s1,s3));
-		intersections.concat(findIntersections(s1,s4));
-		intersections.concat(findIntersections(s2,s3));
-		intersections.concat(findIntersections(s2,s4));
-		return intersections;
+		// console.log(s1.length)
+		// console.log(s2.length)
+		// console.log(s3.length)
+		// console.log(s4.length)
+		findIntersections(s1,s3);
+		findIntersections(s1,s4);
+		findIntersections(s2,s3);
+		findIntersections(s2,s4);
+		return;
 	} else if (curve1.length == 2 && curve2.length == 2) {
 		console.log('found intersection!!! Here:')
-		console.log(bounds1);
-		console.log('and here')
-		console.log(bounds2);
-		new Node(new THREE.Vector3((curve1[0].x+curve1[1].x)/2.,(curve1[0].y+curve1[1].y)/2.,0),globals);
-		return curve1;
+		// console.log(curve1);
+		// console.log('and here')
+		// console.log(curve2);
+
+		// compute intersection
+		var intersectPoint = computeLineLineIntersection(curve1,curve2);
+
+		if (intersectPoint.withinBounds) {
+			console.log(intersectPoint.point);
+			intersections.push(intersectPoint.point);
+			// for (var i=0; i < intersectionPoints.length; i++) { intersectionPoints[i].destroy(); }
+			// intersectionPoints.push(new Node(new THREE.Vector3(intersectPoint.point[0],intersectPoint.point[1],0),globals));
+		}
+
+		return;
 	} else if (curve1.length == 2) {
 		// curve 1 is as small as possible, divide only curve 2
 		var s3 = curve2.slice(0,Math.ceil(curve2.length/2));
 		var s4 = curve2.slice(Math.ceil(curve2.length/2)-1,curve2.length);
-		intersections.concat(findIntersections(curve1,s3));
-		intersections.concat(findIntersections(curve1,s4));
-		return intersections;
+		findIntersections(curve1,s3);
+		findIntersections(curve1,s4);
+		return;
 	} else if (curve2.length == 2) {
 		// curve 2 is as small as possible, divide only curve 1
 		var s1 = curve1.slice(0,Math.ceil(curve1.length/2));
 		var s2 = curve1.slice(Math.ceil(curve1.length/2)-1,curve1.length);
-		intersections.concat(findIntersections(s1,curve2));
-		intersections.concat(findIntersections(s2,curve2));
-		return intersections;
+		findIntersections(s1,curve2);
+		findIntersections(s2,curve2);
+		return;
 	} else {
 		console.log("no points of intersection");
 		// globals.threeView.sceneRemove(boundingBoxes.pop());
 		// globals.threeView.sceneRemove(boundingBoxes2.pop());
-		return [];
+		return;
 	}
 }
 
@@ -361,7 +444,7 @@ Conic.prototype.computeCurve = function() {
 	// construct curve:
 	this.curvePoints = [];
 	var x, y;
-	for (var t=this.extents[0]; t <= this.extents[1]; t+=2) {
+	for (var t=this.extents[0]; t <= this.extents[1]; t+=5) {
 
 		if (this.type == "ellipse") {
 			y = -this.a*Math.cos(t/100);
@@ -489,7 +572,7 @@ Conic.prototype.calculateInteriorBoundingLines = function() {
 			}
 		}
 	}
-	console.log(this.interiorBorderPoints);
+	// console.log(this.interiorBorderPoints);
 }
 
 Conic.prototype.calculateExteriorBoundingLines = function() {

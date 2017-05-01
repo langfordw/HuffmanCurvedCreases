@@ -13,24 +13,13 @@ var polyMat = new THREE.MeshBasicMaterial({color: 0x005500, side: THREE.DoubleSi
 var polyMat2 = new THREE.MeshBasicMaterial({color: 0x000055, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: false});
 var polyMatWire = new THREE.MeshBasicMaterial({color: 0x444444, side: THREE.DoubleSide, transparent: true, opacity:0.25, wireframe: true});
 
-var intersections = [];
-var counter = 0;
 var boundingBoxes = [];
 var boundingBoxes2 = [];
 
+var counter = 0;
+var intersections = [];
 var intersectionPoint = undefined;
 var intersectionPoints = [];
-
-var firstHalf = _.range(26).map(function(val) {
-	return val/50;
-});
-
-
-var secondHalf = _.range(26).map(function(val) {
-	return .5+val/50;
-});
-
-
 
 function getAngle(vec1) {
 	return Math.atan2(vec1.y,vec1.x)+Math.PI/2;
@@ -61,26 +50,52 @@ function getBoundaryIntersection(fromPoint,alongVector) {
  	return ray.intersectBox(box);
 }
 
-function getNearestIntersection(fromPoint,alongVector,exceptThis) {
-	// console.log(_.reject(globals.threeView.wrapper.children, function(val) { return val == exceptThis});
-	var raycast = new THREE.Raycaster(fromPoint,alongVector);
-	var intersects = raycast.intersectObject(globals.threeView.wrapper,true);
-	console.log(intersects)
-	console.log("from point:")
-	console.log(fromPoint)
-	for (var i=0; i < intersects.length; i++) {
-		if (intersects[i].distance > 2) {
-		if (intersectionPoint != undefined) { intersectionPoint.destroy(); }
-		intersectionPoint = new Node(intersects[i].point, globals) 
-		return intersects[i].point;
-		}
+// function getCurveIntersection(fromPoint, alongVector) {
+// 	alongVector.divideScalar(alongVector.length());
+// 	var ray = [fromPoint,fromPoint.clone().add(alongVector.multiplyScalar(globals.width*2))];
+// 	var outputs = [];
+// 	for (var i = 0; i < globals.conics.length; i++) {
+// 		outputs.concat(computeCurveCurveIntersection(ray, globals.conics[i].curvePoints));
+// 	}
+// 	console.log(outputs);
+// }
+
+// function getNearestIntersection(fromPoint,alongVector,exceptThis) {
+// 	// console.log(_.reject(globals.threeView.wrapper.children, function(val) { return val == exceptThis});
+// 	var raycast = new THREE.Raycaster(fromPoint,alongVector);
+// 	var intersects = raycast.intersectObject(globals.threeView.wrapper,true);
+// 	console.log(intersects)
+// 	console.log("from point:")
+// 	console.log(fromPoint)
+// 	for (var i=0; i < intersects.length; i++) {
+// 		if (intersects[i].distance > 2) {
+// 		if (intersectionPoint != undefined) { intersectionPoint.destroy(); }
+// 		intersectionPoint = new Node(intersects[i].point, globals) 
+// 		return intersects[i].point;
+// 		}
+// 	}
+// 	return null;
+// }
+
+function computeCurveCurveIntersection(curve1, curve2, debug=false, draw=false) {
+	counter=0;
+    intersections = [];
+    findIntersections(curve1,curve2);
+    if (debug) console.log(intersections)
+    if (draw) {
+	    for (var i=0; i < intersectionPoints.length; i++) {
+	        if (intersectionPoints[i] != undefined) { intersectionPoints[i].destroy(); }
+	    }
+	    for (var i=0; i < intersections.length; i++) {
+	        intersectionPoints.push(new Node(new THREE.Vector3(intersections[i][0],intersections[i][1],0),globals));
+	    }
 	}
-	return null;
+	// var ints = intersections.slice()
+	return intersections;
 }
 
-function computeLineLineIntersection(line1, line2) {
+function computeLineLineIntersection(line1, line2, debug=false) {
 	//lines are of the form [Vector3, Vector3], with each vector representing start and end points
-
 	var withinBounds1 = false;
 	var withinBounds2 = false;
 
@@ -98,71 +113,70 @@ function computeLineLineIntersection(line1, line2) {
 
 	var A = [[a1, b1],
 			 [a2, b2]];
-	var B = [c1,c2];
-	var point = numeric.solve(A,B);
+	// var B = [c1,c2];
+	// var point = numeric.solve(A,B);
 
-	// var m1 = a1/(-b1);
-	// var k1 = ym1 - xm1*m1;
-	// var m2 = a2/(-b2);
-	// var k2 = ym2 - xm2*m2;
-	// var x = (k2-k1)/(m1-m2);
-	// var y = m1*x+k1;
+	// use Cramer's rule to solve system of equations (~3x faster than solve)
+	var det = numeric.det(A);
+	var detx = numeric.det([[c1, b1],[c2,b2]]);
+	var dety = -numeric.det([[c1, a1],[c2,a2]]);
+	point = [detx/det, dety/det];
 
-	// var point = [x,y];
+	if (debug) {
+		console.log("x11 = " + line1[0].x)
+		console.log("x12 = " + line1[1].x)
+		console.log("y11 = " + line1[0].y)
+		console.log("y12 = " + line1[1].y)
+		console.log("x21 = " + line2[0].x)
+		console.log("x22 = " + line2[1].x)
+		console.log("y21 = " + line2[0].y)
+		console.log("y22 = " + line2[1].y)
+		console.log("a1 = " + a1)
+		console.log("b1 = " + b1)
+		console.log("a2 = " + a2)
+		console.log("b2 = " + b2)
+	}
 
-	// console.log("x11 = " + line1[0].x)
-	// console.log("x12 = " + line1[1].x)
-	// console.log("y11 = " + line1[0].y)
-	// console.log("y12 = " + line1[1].y)
-	// console.log("x21 = " + line2[0].x)
-	// console.log("x22 = " + line2[1].x)
-	// console.log("y21 = " + line2[0].y)
-	// console.log("y22 = " + line2[1].y)
-	// console.log("a1 = " + a1)
-	// console.log("b1 = " + b1)
-	// console.log("a2 = " + a2)
-	// console.log("b2 = " + b2)
-	// console.log("intersect @ " + point)
-
+	var tol = 0.01;
 	// check if point between bounds:
-	if (point[0] >= line1[0].x && point[0] <= line1[1].x) {
-		if (point[1] >= line1[0].y && point[1] <= line1[1].y) {
+	if (point[0]+tol >= line1[0].x && point[0]-tol <= line1[1].x) {
+		if (point[1]+tol >= line1[0].y && point[1]-tol <= line1[1].y) {
 			withinBounds1 = true;
 		}
 	}
-	if (point[0] <= line1[0].x && point[0] >= line1[1].x) {
-		if (point[1] >= line1[0].y && point[1] <= line1[1].y) {
+	if (point[0]-tol <= line1[0].x && point[0]+tol >= line1[1].x) {
+		if (point[1]+tol >= line1[0].y && point[1]-tol <= line1[1].y) {
 			withinBounds1 = true;
 		}
 	}
-	if (point[0] >= line1[0].x && point[0] <= line1[1].x) {
-		if (point[1] <= line1[0].y && point[1] >= line1[1].y) {
+	if (point[0]+tol >= line1[0].x && point[0]-tol <= line1[1].x) {
+		if (point[1]-tol <= line1[0].y && point[1]+tol >= line1[1].y) {
 			withinBounds1 = true;
 		}
 	}
-	if (point[0] <= line1[0].x && point[0] >= line1[1].x) {
-		if (point[1] <= line1[0].y && point[1] >= line1[1].y) {
+	if (point[0]-tol <= line1[0].x && point[0]+tol >= line1[1].x) {
+		if (point[1]-tol <= line1[0].y && point[1]+tol >= line1[1].y) {
 			withinBounds1 = true;
 		}
 	}
 
-	if (point[0] >= line2[0].x && point[0] <= line2[1].x) {
-		if (point[1] >= line2[0].y && point[1] <= line2[1].y) {
+	if (point[0]+tol >= line2[0].x && point[0]-tol <= line2[1].x) {
+		if (point[1]+tol >= line2[0].y && point[1]-tol <= line2[1].y) {
 			withinBounds2 = true;
 		}
 	}
-	if (point[0] <= line2[0].x && point[0] >= line2[1].x) {
-		if (point[1] >= line2[0].y && point[1] <= line2[1].y) {
+	if (point[0]-tol <= line2[0].x && point[0]+tol >= line2[1].x) {
+		if (point[1]+tol >= line2[0].y && point[1]-tol <= line2[1].y) {
 			withinBounds2 = true;
 		}
 	}
-	if (point[0] >= line2[0].x && point[0] <= line2[1].x) {
-		if (point[1] <= line2[0].y && point[1] >= line2[1].y) {
+	if (point[0]+tol >= line2[0].x && point[0]-tol <= line2[1].x) {
+		if (point[1]-tol <= line2[0].y && point[1]+tol >= line2[1].y) {
 			withinBounds2 = true;
 		}
 	}
-	if (point[0] <= line2[0].x && point[0] >= line2[1].x) {
-		if (point[1] <= line2[0].y && point[1] >= line2[1].y) {
+	if (point[0]-tol <= line2[0].x && point[0]+tol >= line2[1].x) {
+		if (point[1]-tol <= line2[0].y && point[1]+tol >= line2[1].y) {
 			withinBounds2 = true;
 		}
 	}
@@ -173,63 +187,41 @@ function computeLineLineIntersection(line1, line2) {
 	}
 }
 
-function findIntersections(curve1,curve2) {
-
-	// var curve1 = new THREE.SplineCurve(linePoints1);
-	// var curve2 = new THREE.SplineCurve(linePoints2);
+function findIntersections(curve1,curve2,debug=false) {
+	if(debug) console.log("curve1: " + curve1[0].toArray() + " --> " + curve1[1].toArray())
+	if(debug) console.log("curve2: " + curve2[0].toArray() + " --> " + curve2[1].toArray())
 
 	var bounds1 = getBoundingBox(curve1);
 	var bounds2 = getBoundingBox(curve2);
-
-	// console.log(bounds1)
-	// console.log(bounds2)
 	
 	counter = counter + 1;
-	// console.log("Count = " + counter);
 	if (counter > 500) {
 		console.log("warning: iterations exceded")
 		return;
 	}
 
 	if (checkOverlap(bounds1, bounds2) && curve1.length > 2 && curve2.length > 2) {
-		// var s1 = curve1.splice(0,Math.floor(curve1.length/2));
-		// var s2 = curve1;
-		// var s3 = curve2.splice(0,Math.floor(curve2.length/2));
-		// var s4 = curve2;
-		// var midpoint1 = curve1.getSpacedPoints(2)[1];
-		// var midpoint2 = curve2.getSpacedPoints(2)[1];
 		var s1 = curve1.slice(0,Math.ceil(curve1.length/2));
 		var s2 = curve1.slice(Math.ceil(curve1.length/2)-1,curve1.length);
 		var s3 = curve2.slice(0,Math.ceil(curve2.length/2));
 		var s4 = curve2.slice(Math.ceil(curve2.length/2)-1,curve2.length);
-		// var s1 = _.range(26).map(function(i){ return curve1.getPointAt(firstHalf[i]) });
-		// var s2 = _.range(26).map(function(i){ return curve1.getPointAt(secondHalf[i]) });
-		// var s3 = _.range(26).map(function(i){ return curve2.getPointAt(firstHalf[i]) });
-		// var s4 = _.range(26).map(function(i){ return curve2.getPointAt(secondHalf[i]) });
-		console.log("iterating");
-		// console.log(s1.length)
-		// console.log(s2.length)
-		// console.log(s3.length)
-		// console.log(s4.length)
+		if (debug) console.log("iterating");
 		findIntersections(s1,s3);
 		findIntersections(s1,s4);
 		findIntersections(s2,s3);
 		findIntersections(s2,s4);
 		return;
 	} else if (curve1.length == 2 && curve2.length == 2) {
-		console.log('found intersection!!! Here:')
-		// console.log(curve1);
-		// console.log('and here')
-		// console.log(curve2);
+		if (debug) console.log('found possible intersection')
 
 		// compute intersection
 		var intersectPoint = computeLineLineIntersection(curve1,curve2);
 
 		if (intersectPoint.withinBounds) {
-			console.log(intersectPoint.point);
+			if (debug) console.log("INTERSECTION @ " + intersectPoint.point)
 			intersections.push(intersectPoint.point);
-			// for (var i=0; i < intersectionPoints.length; i++) { intersectionPoints[i].destroy(); }
-			// intersectionPoints.push(new Node(new THREE.Vector3(intersectPoint.point[0],intersectPoint.point[1],0),globals));
+		} else {
+			if (debug) console.log("INVALID INTERSECTION @ " + intersectPoint.point)
 		}
 
 		return;
@@ -248,19 +240,17 @@ function findIntersections(curve1,curve2) {
 		findIntersections(s2,curve2);
 		return;
 	} else {
-		console.log("no points of intersection");
-		// globals.threeView.sceneRemove(boundingBoxes.pop());
-		// globals.threeView.sceneRemove(boundingBoxes2.pop());
+		if (debug) console.log("no points of intersection");
 		return;
 	}
 }
 
 function checkOverlap(bounds1, bounds2) {
-	// check if they overlap
-	if (bounds1.maxx < bounds2.minx) return false;
-	if (bounds1.minx > bounds2.maxx) return false;
-	if (bounds1.maxy < bounds2.miny) return false;
-	if (bounds1.miny > bounds2.maxy) return false;
+	// check if two bounding boxes overlap
+	if (bounds1.maxx <= bounds2.minx) return false;
+	if (bounds1.minx >= bounds2.maxx) return false;
+	if (bounds1.maxy <= bounds2.miny) return false;
+	if (bounds1.miny >= bounds2.maxy) return false;
 	return true;
 }
 
@@ -272,18 +262,10 @@ function getBoundingBox(points,draw=false) {
 	maxx = -globals.width;
 	maxy = -globals.height;
 	for (var i=0; i < points.length; i++) {
-		if (points[i].x < minx) {
-			minx = points[i].x;
-		}
-		if (points[i].x > maxx) {
-			maxx = points[i].x;
-		}
-		if (points[i].y < miny) {
-			miny = points[i].y;
-		}
-		if (points[i].y > maxy) {
-			maxy = points[i].y;
-		}
+		if (points[i].x < minx) minx = points[i].x;
+		if (points[i].x > maxx) maxx = points[i].x;
+		if (points[i].y < miny) miny = points[i].y;
+		if (points[i].y > maxy) maxy = points[i].y;
 	}
 
 	if (draw) {
@@ -310,19 +292,8 @@ function getBoundingBox(points,draw=false) {
 	return bounds;
 }
 
-function getCurveIntersection(fromPoint,alongVector,exceptCurve) {
-	// var alongVector = new THREE.Vector3(0,300,0)
-	// var raycaster = new THREE.Raycaster(fromPoint.clone().add(new THREE.Vector3(0,0,10)),alongVector,0,Infinity);
-	// raycaster.linePrecision = 5;
-	// console.log("curves to intersect: ")
-	// console.log(globals.threeView.getCurvesToIntersect(exceptCurve))
-	// var intersects = raycaster.intersectObjects(globals.threeView.getCurvesToIntersect(exceptCurve),true);
-	// if (intersects[0] != undefined) {
-	// 	new Node(intersects[0].point,globals)
-	// 	return intersects[0]
-	// }
-	// return null
-
+function getRayIntersection(fromPoint,alongVector,exceptCurve) {
+	// this isn't working as it's supposed to.... there's something strange about it getting trimmed at canvasHeight/2 and not working consistently with intersecting other curves
 	console.log(globals.threeView.wrapper.children);
 	console.log(_.filter(globals.threeView.wrapper.children,function(val) {
 		return (val != exceptCurve.curve) && (val != exceptCurve.focusNode)  && (val != exceptCurve.vertexNode)
@@ -333,24 +304,9 @@ function getCurveIntersection(fromPoint,alongVector,exceptCurve) {
 	_.each(intersects, function(intersect){
 		new Node(intersect.point, globals)
 	})
-	// var creaseLine = new THREE.PlaneGeometry(400,20,1,1);
- //    var plane = new THREE.Mesh(creaseLine, boundaryMat);
- //    // plane.rotateX(Math.PI/2);
- //    // plane.translateZ(-10);
- //    // globals.threeView.sceneAdd(plane);
-
- //    var box = new THREE.Box3(new THREE.Vector3(-200,-100,0),
- //                             new THREE.Vector3(200,-100,0));
-
-	// var ray = new THREE.Ray(fromPoint,alongVector);
-	// // console.log(ray);
-	// // console.log(plane)
- // 	// return ray.intersectPlane(plane);
- // 	return ray.intersectBox(box);
 }
 
 function Conic(type,focus,orientation,a,b,extents,polarity) {
-
 	this.objectWrapper = [];
 	this.deleting = false;
 
@@ -363,6 +319,7 @@ function Conic(type,focus,orientation,a,b,extents,polarity) {
 	this.orientationVec = orientation; 	// unit vector pointing from focal point to vertex
 	this.extents = extents; 			// the x-span of the function (orthogonal to aVec)
 	this.polarity = polarity 			// determines which focal point the rule lines converge on
+	this.definedRules = false;
 
 	// dependent variables
 	if (this.type == "parabola") {
@@ -412,6 +369,10 @@ function Conic(type,focus,orientation,a,b,extents,polarity) {
 	this.interiorBorderPoints = [];
 	this.exteriorBorderPoints = [];
 	this.boundingLines = [];
+	this.boundingLinePoints = [];
+
+	this.spacedRulePoints = [];
+	this.ruleLines = [];
 
 	// Define Nodes:
     this.focusNode = new Node(this.focus,globals,"focus", this);
@@ -444,7 +405,7 @@ Conic.prototype.computeCurve = function() {
 	// construct curve:
 	this.curvePoints = [];
 	var x, y;
-	for (var t=this.extents[0]; t <= this.extents[1]; t+=5) {
+	for (var t=this.extents[0]; t <= this.extents[1]; t+=globals.conic_resolution) {
 
 		if (this.type == "ellipse") {
 			y = -this.a*Math.cos(t/100);
@@ -499,12 +460,13 @@ Conic.prototype.updateGeometry = function() {
 	this.createInteriorPolygon();
 	this.createExteriorPolygon();
 
+	this.calculateBoundingLinePoints();
+
 	globals.threeView.render();
 }
 
 Conic.prototype.moveCurve = function(position) {
 	this.focus = this.focusNode.getPosition();
-	// this.secondaryFocus = this.focusNode.getPosition().add(this.secondaryFocusVec);
 	if (this.type != "parabola") this.secondaryFocus = this.secondaryFocusNode.getPosition();
 	this.updateGeometry();
 }
@@ -572,7 +534,6 @@ Conic.prototype.calculateInteriorBoundingLines = function() {
 			}
 		}
 	}
-	// console.log(this.interiorBorderPoints);
 }
 
 Conic.prototype.calculateExteriorBoundingLines = function() {
@@ -674,6 +635,83 @@ Conic.prototype.createExteriorPolygon = function() {
 	
 	if (globals.showPolygons) this.addObject(this.polygon2);
 	if (globals.showWireframe) this.addObject(this.polyFrame2);
+}
+
+Conic.prototype.setRulePoints = function(resolution=26,points) {
+	console.log('setting rule points')
+	if (points == undefined) {
+		var curve = new THREE.SplineCurve(this.curvePoints);
+		this.spacedRulePoints = _.range(resolution).map(function(i){ 
+			var vec2 = curve.getPointAt(i/(resolution-1));
+			return new THREE.Vector3(vec2.x,vec2.y,0);
+		});
+	} else {
+		this.spacedRulePoints = points;
+	}
+	this.projectRuleLines();
+}
+
+Conic.prototype.getCurveIntersection = function(fromPoint, alongVector) {
+	alongVector.divideScalar(alongVector.length());
+	var ray = [fromPoint,fromPoint.clone().add(alongVector.multiplyScalar(globals.width*2))];
+	var intersectLocations = [];
+	var curveIndex = [];
+	for (var i = 0; i < globals.conics.length; i++) {
+		if (globals.conics[i] != this) {
+			var output = computeCurveCurveIntersection(ray, globals.conics[i].curvePoints);
+			intersectLocations = intersectLocations.concat(output);
+			if (output != []) curveIndex = curveIndex.concat(i);
+		}
+		
+	}
+	return {
+		point:intersectLocations[0],
+		curveIndex: curveIndex[0]
+	}
+}
+
+Conic.prototype.projectRuleLines = function() {
+	console.log('project rule lines')
+	var points = [];
+	this.definedRules = true;
+	for (var i=0; i < this.ruleLines.length; i++) {
+		this.ruleLines[i].destroy();
+	}
+	for (var i=0; i < this.spacedRulePoints.length; i++) {
+		var intersect;
+		if (this.type == "parabola") {
+			if (this.polarity == "converging") {
+				intersect = this.getCurveIntersection(this.spacedRulePoints[i],this.focusVertexVec.clone().negate());
+			} else {
+				intersect = this.getCurveIntersection(this.spacedRulePoints[i],this.focus.clone().sub(this.spacedRulePoints[i]).negate());
+			}
+			
+		} else {
+			intersect = this.getCurveIntersection(this.spacedRulePoints[i],this.focus.clone().sub(this.spacedRulePoints[i]).negate());
+		}
+		var point, whichCurve;
+		whichCurve = intersect.curveIndex;
+		if (intersect.point != undefined) {
+			point = new THREE.Vector3(intersect.point[0],intersect.point[1],0);
+			points.push(point);
+			console.log(point);
+			this.ruleLines.push(new RuleLine( new THREE.Vector3(this.spacedRulePoints[i].x,this.spacedRulePoints[i].y, 0), point));
+		} else {
+			// point = this.focus;
+		}	
+		
+	}
+	console.log(this.ruleLines)
+	console.log("project to: " + whichCurve)
+	if (!globals.conics[whichCurve].definedRules) {
+		globals.conics[whichCurve].setRulePoints(26,points);
+	}
+	
+}
+
+Conic.prototype.calculateBoundingLinePoints = function() {
+	this.boundingLinePoints = [this.interiorBorderPoints[0]].concat(this.curvePoints,
+		this.interiorBorderPoints[this.interiorBorderPoints.length-1]);
 }
 
 Conic.prototype.addObject = function(object){

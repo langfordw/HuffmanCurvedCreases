@@ -27,7 +27,7 @@ function initGlobals(){
         showPolygons: true,
         showWireframe: false,
 
-        conic_resolution: 20, //
+        conic_resolution: 5, // distance between each curve point (less is higher resolution)
         rule_resolution: 20,
 
         width: window.innerWidth*0.6,
@@ -53,6 +53,9 @@ function initGlobals(){
         addConic: addConic,
         removeConic: removeConic,
         intersection: null,
+        ruleLines : [],
+        addRuleLine: addRuleLine,
+        removeRuleLine: removeRuleLine,
         edges: [],
         addEdge: addEdge,
         removeEdge: removeEdge,
@@ -82,6 +85,17 @@ function initGlobals(){
         console.log(conic)
         conic.destroy();
         console.log(_globals.conics);
+    }
+
+    function addRuleLine(ruleLine){
+        _globals.ruleLines.push(ruleLine);
+    }
+    function removeRuleLine(ruleLine){
+        var index = _globals.ruleLines.indexOf(ruleLine);
+        if (index>=0) _globals.ruleLines.splice(index, 1);
+        console.log(ruleLine)
+        ruleLine.destroy();
+        console.log(_globals.ruleLines);
     }
 
     function addEdge(edge){

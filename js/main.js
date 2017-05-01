@@ -11,20 +11,14 @@ $(function() {
     globals = initGlobals();
 
     // globals.addConic( new Conic("parabola", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 0, [-120,120], "converging") );
-    globals.addConic( new Conic("parabola", new THREE.Vector3(300,300,0), new THREE.Vector3(0,1,0), 40, 60, [-120,120], "converging") );
-    globals.addConic( new Conic("hyperbola", new THREE.Vector3(300,300,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "converging") );
+    globals.addConic( new Conic("parabola", new THREE.Vector3(268.5,291.49999473189916,0), new THREE.Vector3(0,1,0), 81.99999488776017, 60, [-72.03937600375107,73.52070464795604], "converging") );
+    globals.addConic( new Conic("parabola", new THREE.Vector3(300,300,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "diverging") );
+    globals.addConic( new Conic("parabola", new THREE.Vector3(375,425,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "diverging") );
+    globals.addConic( new Conic("hyperbola", new THREE.Vector3(375,450,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "diverging") );
     // globals.addConic( new Conic("ellipse", new THREE.Vector3(-100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0) );
-    
-    intersections = [];
-    findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints);
-    console.log(intersections)
-    for (var i=0; i < intersections.length; i++) {
-        if (intersectionPoints[i] != undefined) { intersectionPoints[i].destroy(); }
-    }
-    for (var i=0; i < intersections.length; i++) {
-        intersectionPoints.push(new Node(new THREE.Vector3(intersections[i][0],intersections[i][1],0),globals));
-    }
 
+    globals.conics[0].setRulePoints();
+    // globals.conics[0].projectRuleLines();
     globals.threeView.render();
 
     var raycaster = new THREE.Raycaster();
@@ -130,19 +124,14 @@ $(function() {
                 var intersection = getIntersectionWithObjectPlane(highlightedObj.getPosition());
                 globals.controls.updateControls();
 
+                _.each(globals.conics, function(conic) {
+                    conic.definedRules = false;
+                });
+                globals.conics[0].setRulePoints();
                 highlightedObj.moveManually(intersection,shift);
-                counter=0;
-                intersections = [];
-                findIntersections(globals.conics[0].curvePoints,globals.conics[1].curvePoints);
-                console.log(intersections)
-                for (var i=0; i < intersectionPoints.length; i++) {
-                    if (intersectionPoints[i] != undefined) { intersectionPoints[i].destroy(); }
-                }
-                for (var i=0; i < intersections.length; i++) {
-                    intersectionPoints.push(new Node(new THREE.Vector3(intersections[i][0],intersections[i][1],0),globals));
-                }
                 globals.controls.viewModeCallback();
-                
+                // computeCurveCurveIntersection([globals.conics[0].curvePoints[0],globals.conics[0].interiorBorderPoints[0]],
+                    // globals.conics[1].boundingLinePoints)
             }
         }
     }

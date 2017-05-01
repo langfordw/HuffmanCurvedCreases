@@ -640,7 +640,7 @@ Conic.prototype.createExteriorPolygon = function() {
 }
 
 Conic.prototype.setRulePoints = function(resolution=11,points) {
-	console.log('setting rule points')
+	// console.log('setting rule points')
 	if (points == undefined) {
 		var curve = new THREE.SplineCurve(this.curvePoints);
 		this.spacedRulePoints = _.range(resolution).map(function(i){ 
@@ -753,8 +753,9 @@ Conic.prototype.projectRuleLine = function(fromPoint, direction1, direction2, de
 		// counter to make sure we don't start an infinite loop
 		reflectionCounter = reflectionCounter+1;
 		if (reflectionCounter < 250) {
-			console.log("warning! exceded maximium number of reflections")
 			globals.conics[nearestIntersect.curveIndex].createRulePoint(nearestIntersect.point);
+		} else {
+			console.log("warning! exceded maximium number of reflections")
 		}
 	} else {
 		if (debug) console.log("hit boundary")

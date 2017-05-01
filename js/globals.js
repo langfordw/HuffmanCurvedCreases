@@ -93,9 +93,9 @@ function initGlobals(){
     function removeRuleLine(ruleLine){
         var index = _globals.ruleLines.indexOf(ruleLine);
         if (index>=0) _globals.ruleLines.splice(index, 1);
-        console.log(ruleLine)
+        // console.log(ruleLine)
         ruleLine.destroy();
-        console.log(_globals.ruleLines);
+        // console.log(_globals.ruleLines);
     }
 
     function addEdge(edge){

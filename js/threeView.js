@@ -53,9 +53,9 @@ function initThreeView(globals) {
 
         // camera.zoom = 1;
         // camera.updateProjectionMatrix();
-        // camera.position.x = 40;
-        // camera.position.y = 40;
-        // camera.position.z = 40;
+        // camera.position.y = canvasWidth/2.;
+        // camera.position.z = canvasHeight/2.;
+        // camera.position.z = 400;
 
         controls = new THREE.OrbitControls(camera, container.get(0));
         controls.addEventListener('change', render);

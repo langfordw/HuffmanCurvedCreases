@@ -20,6 +20,7 @@ var counter = 0;
 var intersections = [];
 var intersectionPoint = undefined;
 var intersectionPoints = [];
+var reflectionCounter = 0;
 
 function getAngle(vec1) {
 	return Math.atan2(vec1.y,vec1.x)+Math.PI/2;
@@ -77,6 +78,7 @@ function getBoundaryIntersection(fromPoint,alongVector) {
 // 	return null;
 // }
 
+// from: http://processingjs.nihongoresources.com/intersections/
 function computeCurveCurveIntersection(curve1, curve2, debug=false, draw=false) {
 	counter=0;
     intersections = [];
@@ -637,7 +639,7 @@ Conic.prototype.createExteriorPolygon = function() {
 	if (globals.showWireframe) this.addObject(this.polyFrame2);
 }
 
-Conic.prototype.setRulePoints = function(resolution=26,points) {
+Conic.prototype.setRulePoints = function(resolution=11,points) {
 	console.log('setting rule points')
 	if (points == undefined) {
 		var curve = new THREE.SplineCurve(this.curvePoints);
@@ -648,66 +650,155 @@ Conic.prototype.setRulePoints = function(resolution=26,points) {
 	} else {
 		this.spacedRulePoints = points;
 	}
-	this.projectRuleLines();
+
+	for (var i=0; i < this.spacedRulePoints.length; i++) {
+		this.projectRuleLine(this.spacedRulePoints[i],this.focusVertexVec.clone().negate());
+	}
+	// this.projectRuleLine(this.spacedRulePoints[0],this.focusVertexVec.clone().negate());
+	// this.projectRuleLines();
+}
+
+Conic.prototype.createRulePoint = function(atPoint,fromSide, debug=false) {
+	if (debug) console.log('create rule point at:')
+	if (debug) console.log(atPoint)
+
+	this.spacedRulePoints.push(atPoint);
+	this.projectRuleLine(atPoint,atPoint.clone().sub(this.focus))
 }
 
 Conic.prototype.getCurveIntersection = function(fromPoint, alongVector) {
+	// returns nearest curve intersection (if there is one), otherwise returned undefined
+
+	// normalize vector
 	alongVector.divideScalar(alongVector.length());
+
+	//project long ray
 	var ray = [fromPoint,fromPoint.clone().add(alongVector.multiplyScalar(globals.width*2))];
-	var intersectLocations = [];
-	var curveIndex = [];
+
+	var closestIntersect = ray[1];
+	var closestIndex = [];
 	for (var i = 0; i < globals.conics.length; i++) {
+		// console.log(i)
 		if (globals.conics[i] != this) {
-			var output = computeCurveCurveIntersection(ray, globals.conics[i].curvePoints);
-			intersectLocations = intersectLocations.concat(output);
-			if (output != []) curveIndex = curveIndex.concat(i);
+			var intersects = computeCurveCurveIntersection(ray, globals.conics[i].curvePoints);
+
+			if (intersects.length > 0) {
+				var point = new THREE.Vector3(intersects[0][0],intersects[0][1],0);
+
+				// check if this new point is closer
+				if (point.distanceTo(fromPoint) < closestIntersect.distanceTo(fromPoint)) {
+					closestIntersect = point;
+					closestIndex = i;
+				}
+			} 
+
 		}
-		
 	}
-	return {
-		point:intersectLocations[0],
-		curveIndex: curveIndex[0]
+
+	if (!closestIntersect.equals(ray[1])) {
+		return {
+			point: closestIntersect,
+			curveIndex: closestIndex
+		}
+	} else {
+		return {
+			point: undefined,
+			curveIndex: undefined
+		}
 	}
 }
 
-Conic.prototype.projectRuleLines = function() {
-	console.log('project rule lines')
-	var points = [];
-	this.definedRules = true;
-	for (var i=0; i < this.ruleLines.length; i++) {
-		this.ruleLines[i].destroy();
+Conic.prototype.getNearestIntersection = function(fromPoint, alongVector, debug=false) {
+	var curveIntersection = this.getCurveIntersection(fromPoint, alongVector);
+	var boundaryIntersection = getBoundaryIntersection(fromPoint, alongVector);
+
+	var nearestIntersect = {};
+	if (curveIntersection.point != undefined) {
+		// nearest intersect = curve
+		nearestIntersect = {
+			point: curveIntersection.point,
+			curveIndex: curveIntersection.curveIndex
+		};
+	} else {
+		// nearest intersect = boundary
+		nearestIntersect.point = boundaryIntersection;
+		nearestIntersect.curveIndex = undefined;
 	}
-	for (var i=0; i < this.spacedRulePoints.length; i++) {
-		var intersect;
-		if (this.type == "parabola") {
-			if (this.polarity == "converging") {
-				intersect = this.getCurveIntersection(this.spacedRulePoints[i],this.focusVertexVec.clone().negate());
-			} else {
-				intersect = this.getCurveIntersection(this.spacedRulePoints[i],this.focus.clone().sub(this.spacedRulePoints[i]).negate());
-			}
-			
-		} else {
-			intersect = this.getCurveIntersection(this.spacedRulePoints[i],this.focus.clone().sub(this.spacedRulePoints[i]).negate());
-		}
-		var point, whichCurve;
-		whichCurve = intersect.curveIndex;
-		if (intersect.point != undefined) {
-			point = new THREE.Vector3(intersect.point[0],intersect.point[1],0);
-			points.push(point);
-			console.log(point);
-			this.ruleLines.push(new RuleLine( new THREE.Vector3(this.spacedRulePoints[i].x,this.spacedRulePoints[i].y, 0), point));
-		} else {
-			// point = this.focus;
-		}	
-		
-	}
-	console.log(this.ruleLines)
-	console.log("project to: " + whichCurve)
-	if (!globals.conics[whichCurve].definedRules) {
-		globals.conics[whichCurve].setRulePoints(26,points);
-	}
-	
+
+	if (debug) console.log('nearest Intersect:');
+	if (debug) console.log(nearestIntersect);
+
+	return nearestIntersect;
 }
+
+Conic.prototype.projectRuleLine = function(fromPoint, direction1, direction2, debug=false) {
+	if (debug) {
+		console.log("projecing rule line")
+		console.log("from:")
+		console.log(fromPoint)
+		console.log("alongVector:")
+		console.log(direction1)
+	}
+
+	var nearestIntersect = this.getNearestIntersection(fromPoint,direction1);
+	newRule = new RuleLine(fromPoint, nearestIntersect.point);
+	this.ruleLines.push( newRule );
+
+	// globals.threeView.render();
+
+	if (nearestIntersect.curveIndex != undefined) {
+		// we hit a curve, create a rule point
+		if (debug) console.log("hit curve " + nearestIntersect.curveIndex)
+
+		// counter to make sure we don't start an infinite loop
+		reflectionCounter = reflectionCounter+1;
+		if (reflectionCounter < 250) {
+			console.log("warning! exceded maximium number of reflections")
+			globals.conics[nearestIntersect.curveIndex].createRulePoint(nearestIntersect.point);
+		}
+	} else {
+		if (debug) console.log("hit boundary")
+	}
+}
+
+// Conic.prototype.projectRuleLines = function() {
+// 	console.log('project rule lines')
+// 	var points = [];
+// 	this.definedRules = true;
+// 	for (var i=0; i < this.ruleLines.length; i++) {
+// 		this.ruleLines[i].destroy();
+// 	}
+// 	for (var i=0; i < this.spacedRulePoints.length; i++) {
+// 		var intersect;
+// 		if (this.type == "parabola") {
+// 			if (this.polarity == "converging") {
+// 				intersect = this.getCurveIntersection(this.spacedRulePoints[i],this.focusVertexVec.clone().negate());
+// 			} else {
+// 				intersect = this.getCurveIntersection(this.spacedRulePoints[i],this.focus.clone().sub(this.spacedRulePoints[i]).negate());
+// 			}
+			
+// 		} else {
+// 			intersect = this.getCurveIntersection(this.spacedRulePoints[i],this.focus.clone().sub(this.spacedRulePoints[i]).negate());
+// 		}
+// 		var point, whichCurve;
+// 		whichCurve = intersect.curveIndex;
+// 		if (intersect.point != undefined) {
+// 			point = new THREE.Vector3(intersect.point[0],intersect.point[1],0);
+// 			points.push(point);
+// 			console.log(point);
+// 			this.ruleLines.push(new RuleLine( new THREE.Vector3(this.spacedRulePoints[i].x,this.spacedRulePoints[i].y, 0), point));
+// 		} else {
+// 			// point = this.focus;
+// 		}	
+		
+// 	}
+// 	console.log(this.ruleLines)
+// 	console.log("project to: " + whichCurve)
+// 	if (!globals.conics[whichCurve].definedRules) {
+// 		globals.conics[whichCurve].setRulePoints(26,points);
+// 	}
+	
+// }
 
 Conic.prototype.calculateBoundingLinePoints = function() {
 	this.boundingLinePoints = [this.interiorBorderPoints[0]].concat(this.curvePoints,
@@ -726,6 +817,14 @@ Conic.prototype.removeObject = function(object){
     	this.objectWrapper.splice(index, 1);
     }
 };
+
+Conic.prototype.removeRuleLine = function(ruleLine) {
+	var index = this.ruleLines.indexOf(ruleLine);
+    if (index>=0) { 
+    	// ruleLine.
+    	this.ruleLines.splice(index, 1);
+    }
+}
 
 //deallocate
 

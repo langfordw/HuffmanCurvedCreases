@@ -23,6 +23,7 @@ function initControls(globals){
     });
 
     setLink("#export", function(){
+        createMesh();
         // console.log('coming soon');
         // globals.getIntersection(globals.conics[0],globals.conics[1])
 

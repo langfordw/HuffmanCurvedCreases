@@ -44,6 +44,138 @@ function vectorBetweenVectors(A,B,C) {
 	return false;
 }
 
+function createMesh() {
+	var nodes = [];
+	var edges = [];
+	var faces = [];
+	_.each(globals.conics, function(conic) {
+		console.log(conic.spacedRulePoints);
+		console.log(conic.ruleLines);
+	});
+
+	_.each(globals.conics, function(conic,i) {
+		_.each(conic.spacedRulePoints, function(rulePoint, j) {
+			var node = {};
+			node.position = rulePoint;
+			node.index = j;
+			node.curve = i;
+			node.neighbors = [];
+			var neighbors = findClosestTwoPoints(rulePoint,conic.spacedRulePoints);
+			if (neighbors.index2 == -1) node.neighbors.push(neighbors.index1);
+			else node.neighbors = node.neighbors.concat([neighbors.index1, neighbors.index2]);
+			nodes.push(node);
+		});
+		_.each(conic.ruleLines, function(ruleLine, j) {
+			var node = {};
+			var tol = 0.01;
+			if (Math.abs(ruleLine.start.x) < tol || Math.abs(ruleLine.start.y) < tol) {
+				//boundry node
+				node.position = ruleLine.start;
+				node.curve = -1;
+				node.index = j;
+				node.neighbors = [];
+				nodes.push(node);
+			} else if (Math.abs(ruleLine.end.x) < tol || Math.abs(ruleLine.end.y) < tol) {
+				//boundry node
+				node.position = ruleLine.end;
+				node.curve = -1;
+				node.index = j;
+				node.neighbors = [];
+				nodes.push(node);
+			}
+		});
+	});
+
+	console.log(nodes);
+
+		// _.each(conic.ruleLines, function(ruleLine) {
+		// 	var nodePos = ruleLine.start;
+		// 	_.each(globals.conics, function(subconic) {
+		// 		_.each(subconic.spacedRulePoints, function(rulePoint) {
+		// 			if (nodePos.equals(rulePoint)) {
+
+		// 			}
+		// 		})
+				
+		// 	})
+			
+		// }
+
+		// _.each(conic.spacedRulePoints, function(nodePoint) {
+		// 	nodes.push(nodePoint);
+		// });
+		// _.each(conic.ruleLines, function(ruleLine) {
+		// 	var edge = {
+		// 		points: [lookupIndexByPosition(ruleLine.start), 
+		// 				 lookupIndexByPosition(ruleLine.end)],
+		// 		type: 0
+		// 	}
+		// 	edges.push(edge);
+		// })
+	// });
+
+	// console.log(nodes)
+	// console.log(edges)
+}
+
+function lookupIndexByPosition(rulePointPosition) {
+	_.each(globals.conics, function(conic,i) {
+		_.each(conic.spacedRulePoints, function(nodePoint,j) {
+			if (nodePoint.equals(rulePointPosition)) {
+				return [i,j];
+			}
+			return -1;
+		});
+		for (var j=0; j < conic.spacedRulePoints.length; j++) {
+			console.log(j)
+			
+		}
+	});
+}
+
+function findClosestPoint(point,pointList) {
+	var closestPoint = null;
+	var closestIndex = -1;
+	var closestDistance = 1000;
+	for (var i=0; i < pointList.length; i++) {
+		if (closestPoint != null) ;
+		if (closestDistance > pointList[i].distanceTo(point)) {
+			closestPoint = pointList.clone();
+			closestDistance = closestPoint.distanceTo(point);
+			closestIndex = i;
+		}
+	}
+	return {
+		point:closestPoint,
+		index:closestIndex
+	}
+}
+
+function findClosestTwoPoints(point,pointList) {
+	var closestPoint = null;
+	var nextClosestPoint = null;
+	var closestIndex = -1;
+	var nextClosestIndex = -1;
+	var closestDistance = 1000;
+	var nextClosestDistance = 1000;
+	for (var i=0; i < pointList.length; i++) {
+		if (closestDistance > pointList[i].distanceTo(point) && Math.abs(pointList[i].distanceTo(point))>0.001) {
+			nextClosestPoint = closestPoint;
+			closestPoint = pointList[i].clone();
+			nextClosestDistance = closestDistance;
+			closestDistance = closestPoint.distanceTo(point);
+			nextClosestIndex = closestIndex;
+			closestIndex = i;
+		}
+	}
+	return {
+		point1:closestPoint,
+		index1:closestIndex,
+		point2:nextClosestPoint,
+		index2:nextClosestIndex
+	}
+}
+
 function getBoundaryIntersection(fromPoint,alongVector) {
 	var ray = new THREE.Ray(fromPoint,alongVector);
 	var box = new THREE.Box3(new THREE.Vector3(globals.xmin,globals.ymin,0),
@@ -653,6 +785,7 @@ Conic.prototype.setRulePoints = function(resolution=11,points) {
 
 	for (var i=0; i < this.spacedRulePoints.length; i++) {
 		this.projectRuleLine(this.spacedRulePoints[i],this.focusVertexVec.clone().negate());
+		this.projectRuleLine(this.spacedRulePoints[i],this.spacedRulePoints[i].clone().sub(this.focus));
 	}
 	// this.projectRuleLine(this.spacedRulePoints[0],this.focusVertexVec.clone().negate());
 	// this.projectRuleLines();
@@ -835,6 +968,9 @@ Conic.prototype.destroy = function(){
     for (var i=0; i < this.objectWrapper.length; i++) {
     	globals.threeView.sceneRemove(this.objectWrapper[i]);
     	this.objectWrapper[i] = null;
+    }
+    for (var i=0; i < this.ruleLines.length; i++) {
+    	this.ruleLines[i].destroy();
     }
     this.objectWrapper = [];
     globals.removeConic(this);

@@ -11,9 +11,9 @@ $(function() {
     globals = initGlobals();
 
     // globals.addConic( new Conic("parabola", new THREE.Vector3(0,50,0), new THREE.Vector3(0,-1,0), 60, 0, [-120,120], "converging") );
-    globals.addConic( new Conic("parabola", new THREE.Vector3(268.5,291.49999473189916,0), new THREE.Vector3(0,1,0), 81.99999488776017, 60, [-72.03937600375107,73.52070464795604], "converging") );
+    globals.addConic( new Conic("parabola", new THREE.Vector3(215,275,0), new THREE.Vector3(0,1,0), 81.99999488776017, 60, [-72.03937600375107,73.52070464795604], "converging") );
     globals.addConic( new Conic("parabola", new THREE.Vector3(215,275,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "diverging") );
-    globals.addConic( new Conic("parabola", new THREE.Vector3(250,300,0), new THREE.Vector3(0,1,0), 40, 60, [-120,120], "diverging") );
+    // globals.addConic( new Conic("parabola", new THREE.Vector3(250,300,0), new THREE.Vector3(0,1,0), 40, 60, [-120,120], "diverging") );
     // globals.addConic( new Conic("hyperbola", new THREE.Vector3(375,450,0), new THREE.Vector3(0,-1,0), 40, 60, [-120,120], "diverging") );
     // globals.addConic( new Conic("ellipse", new THREE.Vector3(-100,50,0), new THREE.Vector3(0,-1,0), 60, 60, [-120,120], 0) );
     console.log(globals.conics)

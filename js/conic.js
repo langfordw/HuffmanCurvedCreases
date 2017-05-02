@@ -44,6 +44,14 @@ function vectorBetweenVectors(A,B,C) {
 	return false;
 }
 
+function addNode(nodePos) {
+	// lookupIndexByPosition(nodePos,meshNodes)
+	var newIndex = _.indexOf(meshNodes,nodePos);
+	if (newIndex == -1) {
+		meshNodes.push(nodePos);
+	}
+}
+
 function createMesh() {
 	var nodes = [];
 	var edges = [];
@@ -53,66 +61,170 @@ function createMesh() {
 		console.log(conic.ruleLines);
 	});
 
-	var ruleLineIndexBase = 0;
-	_.each(globals.conics, function(conic,i) {
-		_.each(conic.spacedRulePoints, function(rulePoint, j) {
-			var node = {};
-			node.position = rulePoint;
-			node.index = j;
-			node.curve = i;
-			node.curveNeighbors = [];
-			node.ruleNeighbors = [];
-			var neighbors = findClosestTwoPoints(rulePoint,conic.spacedRulePoints);
-			if (neighbors.index2 == -1) node.curveNeighbors.push(neighbors.index1);
-			else node.curveNeighbors = node.curveNeighbors.concat([neighbors.index1, neighbors.index2]);
-			_.each(conic.ruleLines, function(ruleLine, k) {
-				var index = lookupIndexByPosition(rulePoint,[ruleLine.start, ruleLine.end])
-				if (index != -1) {
-					node.ruleNeighbors.push(ruleLineIndexBase+k);
-				}
-			})
-			nodes.push(node);
-		});
-		ruleLineIndexBase += conic.ruleLines.length;
-	});
+	// var ruleLineIndexBase = 0;
+	// _.each(globals.conics, function(conic,i) {
+	// 	_.each(conic.spacedRulePoints, function(rulePoint, j) {
+	// 		var node = {};
+	// 		node.position = rulePoint;
+	// 		node.index = j;
+	// 		node.curve = i;
+	// 		node.curveNeighbors = [];
+	// 		node.ruleNeighbors = [];
+	// 		var neighbors = findClosestTwoPoints(rulePoint,conic.spacedRulePoints);
+	// 		if (neighbors.index2 == -1) node.curveNeighbors.push(neighbors.index1);
+	// 		else node.curveNeighbors = node.curveNeighbors.concat([neighbors.index1, neighbors.index2]);
+	// 		_.each(conic.ruleLines, function(ruleLine, k) {
+	// 			var index = lookupIndexByPosition(rulePoint,[ruleLine.start, ruleLine.end])
+	// 			if (index != -1) {
+	// 				node.ruleNeighbors.push(ruleLineIndexBase+k);
+	// 			}
+	// 		})
+	// 		nodes.push(node);
+	// 	});
+	// 	ruleLineIndexBase += conic.ruleLines.length;
+	// });
 
+	var ruleLineObjects = [];
 	var ruleLineIndexBase = 0;
 	// var nodeIndexBase = 0;
 	_.each(globals.conics, function(conic,i) {
 		_.each(conic.ruleLines, function(ruleLine, j) {
 			var node = {};
+			var ruleLineObject = {};
+			ruleLineObject.ruleLine = ruleLine;
+			ruleLineObject.curveStart = i;
 			var tol = 0.1;
 			if (Math.abs(ruleLine.end.x) < tol || Math.abs(ruleLine.end.y) < tol || Math.abs(ruleLine.end.x-globals.width) < tol || Math.abs(ruleLine.end.y-globals.height) < tol) {
 				//boundry node
 				// console.log("end on boundary")
-				node.position = ruleLine.end;
-				node.curve = -1;
-				node.index = ruleLineIndexBase+j;
-				node.ruleNeighbors = [];
-				node.ruleNeighbors.push(lookupIndexByPosition(ruleLine.start,conic.spacedRulePoints));
-				nodes.push(node);
+				
+				ruleLineObject.curveEnd = -1;
+
+				// node.position = ruleLine.end;
+				// node.curve = -1;
+				// node.index = ruleLineIndexBase+j;
+				// node.ruleNeighbors = [];
+				// node.ruleNeighbors.push(lookupIndexByPosition(ruleLine.start,conic.spacedRulePoints));
+				// nodes.push(node);
+			} else {
+				ruleLineObject.curveEnd = lookupCurveByPosition(ruleLine.end);
 			}
+
+			ruleLineObjects.push(ruleLineObject);
 		});
 		ruleLineIndexBase += conic.ruleLines.length;
+	});
 		// nodeIndexBase += conic.spacedRulePoints.length;
-	});
+	
 
-	console.log(nodes);
+	console.log(ruleLineObjects)
 
-	_.each(nodes, function(node) {
-		if (node.curve >= 0) { 
-			console.log(node) 
-			var edge = {};
-			edge.nodes = [];
-			edge.nodes.push(node.index)
-			_.each(node.ruleNeighbors, function(otherNode) {
-				if (!_.contains(edge.nodes,otherNode)) {
-					edge.nodes.push(otherNode);
-				}
-			})
-			edges.push(edge)
-		}
-	});
+	// console.log(_.where(ruleLineObjects, {curveEnd:-1}))
+	var ruleLineList = _.where(ruleLineObjects, {curveEnd:-1,curveStart:0});
+	console.log("curveEnd: " + (-1) + "  curveStart: " + 0)
+	console.log(ruleLineList)
+	var meshNodes = [];
+	var meshEdges = [];
+	var meshFaces = [];
+	meshNodes.push(ruleLineList[0].ruleLine.start);
+	meshNodes.push(ruleLineList[0].ruleLine.end);
+	meshEdges.push([0,1]);
+	var nodeCount = 1;
+	for (var i=1; i < ruleLineList.length; i++) {
+		meshNodes.push(ruleLineList[i].ruleLine.start);
+		nodeCount++;
+		meshEdges.push([nodeCount-1,nodeCount]);
+		meshEdges.push([nodeCount,nodeCount-2]);
+		meshFaces.push([nodeCount-2,nodeCount-1,nodeCount]);
+
+		meshNodes.push(ruleLineList[i].ruleLine.end);
+		nodeCount++;
+		meshEdges.push([nodeCount-1,nodeCount]);
+		meshEdges.push([nodeCount,nodeCount-2]);
+		meshFaces.push([nodeCount-2,nodeCount-1,nodeCount]);
+	}
+
+	console.log(meshNodes)
+	console.log(meshEdges)
+	console.log(meshFaces)
+
+	var ruleLineList = _.where(ruleLineObjects, {curveEnd:1,curveStart:0});
+	console.log("curveEnd: " + (1) + "  curveStart: " + 0)
+	console.log(ruleLineList)
+	meshNodes.push(ruleLineList[0].ruleLine.start);
+	meshNodes.push(ruleLineList[0].ruleLine.end);
+	meshEdges.push([0,1]);
+	var nodeCount = 1;
+	for (var i=1; i < ruleLineList.length; i++) {
+		meshNodes.push(ruleLineList[i].ruleLine.start);
+		nodeCount++;
+		meshEdges.push([nodeCount-1,nodeCount]);
+		meshEdges.push([nodeCount,nodeCount-2]);
+		meshFaces.push([nodeCount-2,nodeCount-1,nodeCount]);
+
+		meshNodes.push(ruleLineList[i].ruleLine.end);
+		nodeCount++;
+		meshEdges.push([nodeCount-1,nodeCount]);
+		meshEdges.push([nodeCount,nodeCount-2]);
+		meshFaces.push([nodeCount-2,nodeCount-1,nodeCount]);
+	}
+
+	console.log(meshNodes)
+	console.log(meshEdges)
+	console.log(meshFaces)
+
+	var ruleLineList = _.where(ruleLineObjects, {curveEnd:-1,curveStart:1});
+	console.log("curveEnd: " + (-1) + "  curveStart: " + 1)
+	console.log(ruleLineList)
+	meshNodes.push(ruleLineList[0].ruleLine.start);
+	meshNodes.push(ruleLineList[0].ruleLine.end);
+	meshEdges.push([0,1]);
+	var nodeCount = 1;
+	for (var i=1; i < ruleLineList.length; i++) {
+		meshNodes.push(ruleLineList[i].ruleLine.start);
+		nodeCount++;
+		meshEdges.push([nodeCount-1,nodeCount]);
+		meshEdges.push([nodeCount,nodeCount-2]);
+		meshFaces.push([nodeCount-2,nodeCount-1,nodeCount]);
+
+		meshNodes.push(ruleLineList[i].ruleLine.end);
+		nodeCount++;
+		meshEdges.push([nodeCount-1,nodeCount]);
+		meshEdges.push([nodeCount,nodeCount-2]);
+		meshFaces.push([nodeCount-2,nodeCount-1,nodeCount]);
+	}
+
+	console.log(meshNodes)
+	console.log(meshEdges)
+	console.log(meshFaces)
+
+	console.log("unique:")
+	console.log(_.uniq(meshNodes))
+
+	// console.log(nodes);
+
+	// _.each(nodes, function(node) {
+	// 	if (node.curve >= 0) { 
+	// 		console.log(node) 
+	// 		var edge = {};
+	// 		edge.nodes = [];
+	// 		edge.nodes.push(node.index)
+	// 		_.each(node.ruleNeighbors, function(otherNode) {
+	// 			if (!_.contains(edge.nodes,otherNode)) {
+	// 				edge.nodes.push(otherNode);
+	// 			}
+	// 		})
+	// 		edges.push(edge)
+	// 	}
+	// });
+
+	
+	// for (var i=0; i < globals.conics[0].spacedRulePoints.length; i++) {
+	// 	// var node = _.findWhere(nodes,{'index':i})
+	// 	// meshNodes.push(node);
+
+
+	// }
 
 		// _.each(conic.ruleLines, function(ruleLine) {
 		// 	var nodePos = ruleLine.start;
@@ -141,33 +253,32 @@ function createMesh() {
 	// });
 
 	// console.log(nodes)
-	console.log(edges)
+	// console.log(edges)
 }
 
-// function lookupIndexByPosition(rulePointPosition) {
-// 	_.each(globals.conics, function(conic,i) {
-// 		_.each(conic.spacedRulePoints, function(nodePoint,j) {
-// 			if (nodePoint.equals(rulePointPosition)) {
-// 				return [i,j];
-// 			}
-// 			return -1;
-// 		});
-// 		for (var j=0; j < conic.spacedRulePoints.length; j++) {
-// 			console.log(j)
-			
-// 		}
-// 	});
-// }
+function lookupCurveByPosition(position) {
+	var tol = 0.01;
+	for (var j=0; j < globals.conics.length; j++) {
+		var list = globals.conics[j].spacedRulePoints;
+		for (var i=0; i < list.length; i++) {
+			if (position.distanceTo(list[i]) < tol) {
+				return j;
+			}
+		}
+	}
+	// console.log('warning no point found')
+	return -1;
+}
 
 function lookupIndexByPosition(position, list) {
-	console.log(list)
 	var tol = 0.01;
 	for (var i=0; i < list.length; i++) {
-		if (position.distanceTo(list[i]) < tol) {
+		// if (position.distanceTo(list[i]) < tol) {
+		if (position.equal(list[i])) {
 			return i;
 		}
 	}
-	console.log('warning no point found')
+	// console.log('warning no point found')
 	return -1;
 }
 

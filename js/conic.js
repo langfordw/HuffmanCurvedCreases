@@ -53,40 +53,66 @@ function createMesh() {
 		console.log(conic.ruleLines);
 	});
 
+	var ruleLineIndexBase = 0;
 	_.each(globals.conics, function(conic,i) {
 		_.each(conic.spacedRulePoints, function(rulePoint, j) {
 			var node = {};
 			node.position = rulePoint;
 			node.index = j;
 			node.curve = i;
-			node.neighbors = [];
+			node.curveNeighbors = [];
+			node.ruleNeighbors = [];
 			var neighbors = findClosestTwoPoints(rulePoint,conic.spacedRulePoints);
-			if (neighbors.index2 == -1) node.neighbors.push(neighbors.index1);
-			else node.neighbors = node.neighbors.concat([neighbors.index1, neighbors.index2]);
+			if (neighbors.index2 == -1) node.curveNeighbors.push(neighbors.index1);
+			else node.curveNeighbors = node.curveNeighbors.concat([neighbors.index1, neighbors.index2]);
+			_.each(conic.ruleLines, function(ruleLine, k) {
+				var index = lookupIndexByPosition(rulePoint,[ruleLine.start, ruleLine.end])
+				if (index != -1) {
+					node.ruleNeighbors.push(ruleLineIndexBase+k);
+				}
+			})
 			nodes.push(node);
 		});
+		ruleLineIndexBase += conic.ruleLines.length;
+	});
+
+	var ruleLineIndexBase = 0;
+	// var nodeIndexBase = 0;
+	_.each(globals.conics, function(conic,i) {
 		_.each(conic.ruleLines, function(ruleLine, j) {
 			var node = {};
-			var tol = 0.01;
-			if (Math.abs(ruleLine.start.x) < tol || Math.abs(ruleLine.start.y) < tol) {
+			var tol = 0.1;
+			if (Math.abs(ruleLine.end.x) < tol || Math.abs(ruleLine.end.y) < tol || Math.abs(ruleLine.end.x-globals.width) < tol || Math.abs(ruleLine.end.y-globals.height) < tol) {
 				//boundry node
-				node.position = ruleLine.start;
-				node.curve = -1;
-				node.index = j;
-				node.neighbors = [];
-				nodes.push(node);
-			} else if (Math.abs(ruleLine.end.x) < tol || Math.abs(ruleLine.end.y) < tol) {
-				//boundry node
+				// console.log("end on boundary")
 				node.position = ruleLine.end;
 				node.curve = -1;
-				node.index = j;
-				node.neighbors = [];
+				node.index = ruleLineIndexBase+j;
+				node.ruleNeighbors = [];
+				node.ruleNeighbors.push(lookupIndexByPosition(ruleLine.start,conic.spacedRulePoints));
 				nodes.push(node);
 			}
 		});
+		ruleLineIndexBase += conic.ruleLines.length;
+		// nodeIndexBase += conic.spacedRulePoints.length;
 	});
 
 	console.log(nodes);
+
+	_.each(nodes, function(node) {
+		if (node.curve >= 0) { 
+			console.log(node) 
+			var edge = {};
+			edge.nodes = [];
+			edge.nodes.push(node.index)
+			_.each(node.ruleNeighbors, function(otherNode) {
+				if (!_.contains(edge.nodes,otherNode)) {
+					edge.nodes.push(otherNode);
+				}
+			})
+			edges.push(edge)
+		}
+	});
 
 		// _.each(conic.ruleLines, function(ruleLine) {
 		// 	var nodePos = ruleLine.start;
@@ -115,22 +141,34 @@ function createMesh() {
 	// });
 
 	// console.log(nodes)
-	// console.log(edges)
+	console.log(edges)
 }
 
-function lookupIndexByPosition(rulePointPosition) {
-	_.each(globals.conics, function(conic,i) {
-		_.each(conic.spacedRulePoints, function(nodePoint,j) {
-			if (nodePoint.equals(rulePointPosition)) {
-				return [i,j];
-			}
-			return -1;
-		});
-		for (var j=0; j < conic.spacedRulePoints.length; j++) {
-			console.log(j)
+// function lookupIndexByPosition(rulePointPosition) {
+// 	_.each(globals.conics, function(conic,i) {
+// 		_.each(conic.spacedRulePoints, function(nodePoint,j) {
+// 			if (nodePoint.equals(rulePointPosition)) {
+// 				return [i,j];
+// 			}
+// 			return -1;
+// 		});
+// 		for (var j=0; j < conic.spacedRulePoints.length; j++) {
+// 			console.log(j)
 			
+// 		}
+// 	});
+// }
+
+function lookupIndexByPosition(position, list) {
+	console.log(list)
+	var tol = 0.01;
+	for (var i=0; i < list.length; i++) {
+		if (position.distanceTo(list[i]) < tol) {
+			return i;
 		}
-	});
+	}
+	console.log('warning no point found')
+	return -1;
 }
 
 function findClosestPoint(point,pointList) {
